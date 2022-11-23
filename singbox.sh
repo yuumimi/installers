@@ -5,7 +5,7 @@ __bootstrap_webi() {
 	set -e
 	set -u
 
-	WEBI_HOST='https://ghproxy.com/'
+	WEBI_HOST='https://ghproxy.com'
 	WEBI_RELEASES='https://github.com/SagerNet/sing-box/releases/download'
 	WEBI_PKG='sing-box'
 	PKG_NAME='sing-box'
