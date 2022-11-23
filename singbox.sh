@@ -599,6 +599,7 @@ __bootstrap_webi() {
 			fi
 			if [ -n "${pid:-}" ]; then
 				_sudo kill -9 $pid
+				echo ""
 				printf "\n\n正在停止 sing-box...\n\n"
 				sleep 3
 				if [ "$OS" = "windows" ]; then
