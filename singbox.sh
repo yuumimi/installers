@@ -11,7 +11,7 @@ __bootstrap_webi() {
 	PKG_NAME='sing-box'
 	WEBI_OS="${OS}"
 	WEBI_ARCH="${ARCH}"
-	WEBI_VERSION="${VERSION:-1.1-beta15}"
+	WEBI_VERSION="${VERSION:-1.1-beta18}"
 	WEBI_TAG="v${WEBI_VERSION}"
 	if [ "$OS" = "windows" ]; then
 		WEBI_EXT='zip'
