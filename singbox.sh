@@ -545,7 +545,7 @@ __bootstrap_webi() {
 				inet4_address=$(cat "${WEBI_PKG_WORKDIR}/config.json" | awk '/"inet4_address"/ {gsub(/,|"|\/.*/,"",$2); print $2}' | cut -d ':' -f 2)
 				external_controller_port=$(cat "${WEBI_PKG_WORKDIR}/config.json" | awk '/"external_controller"/ {gsub(/,|"/,"",$2); print $2}' | cut -d ':' -f 2)
 			else
-				printf "sing-box 配置文件不存在("${WEBI_PKG_WORKDIR}/config.json"),请重试 => 稍后再试 => 更换网络后再试.\n\n"
+				printf "sing-box 配置文件不存在("${WEBI_PKG_WORKDIR}/config.json")\n请重试 => 重启设备后再试 => 更换网络后再试.\n\n"
 				exit 1
 			fi
 
@@ -555,8 +555,19 @@ __bootstrap_webi() {
 			sleep 3
 			if [ "$OS" = "windows" ]; then
 				sleep 7
+				n=0
+				until [ "$n" -ge 3 ]; do
+					if cat "$log" | grep "configure tun interface" >/dev/null; then
+						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+						echo "启动失败,重试..."
+						sleep 10
+						n=$((n + 1))
+					else
+						break
+					fi
+				done
 			fi
-			cat "$log" | head -n 7
+			cat "$log" | head -n 9
 			echo ""
 			case $OS in
 			linux)
@@ -611,9 +622,7 @@ __bootstrap_webi() {
 				echo ""
 				printf "\n\n正在停止 sing-box...\n\n"
 				sleep 3
-				if [ "$OS" = "windows" ]; then
-					sleep 7
-				fi
+
 				if [ $? -eq 0 ]; then
 					printf "\e[31m****************************************************************\e[0m\n"
 					printf "\e[31m*                                                              *\e[0m\n"
