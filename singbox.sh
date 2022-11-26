@@ -699,6 +699,16 @@ __bootstrap_webi() {
 			if [ -n "$(command -v pkg_install)" ]; then pkg_install; else webi_install; fi
 			chmod a+x "$pkg_src"
 			chmod a+x "$pkg_src_cmd"
+			if [ -z "$("$pkg_src_cmd" version)" ]; then
+				rm -rf "$pkg_src"
+				rm -rf "$pkg_src_cmd"
+				WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-amd64v3.${WEBI_EXT}"
+				WEBI_PKG_URL="${WEBI_HOST}/${WEBI_RELEASES}/${WEBI_TAG}/${WEBI_PKG_FILE}"
+				webi_pre_install
+				webi_install
+				chmod a+x "$pkg_src"
+				chmod a+x "$pkg_src_cmd"
+			fi
 		)
 
 		webi_link
@@ -761,10 +771,6 @@ args=$(awk 'BEGIN { for(i = 1; i < ARGC; i++) print ARGV[i] }' "$@")
 
 if echo "$args" | grep -E '^https:\/\/' >/dev/null; then
 	URL=$(echo "$args" | grep -E '^https:\/\/')
-fi
-
-if echo "$args" | grep -E '^arch=' >/dev/null; then
-	ARCH=$(echo "$args" | grep -E '^arch=' | cut -d'=' -f2)
 fi
 
 if echo "$args" | grep -E '^version=' >/dev/null; then
