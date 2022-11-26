@@ -501,6 +501,7 @@ __bootstrap_webi() {
 			fi
 			if [ -f "${WEBI_PKG_WORKDIR}/config.tmp" ]; then
 				if "$pkg_dst_cmd" check -c "${WEBI_PKG_WORKDIR}/config.tmp" 2>&1; then
+
 					case $OS in
 					linux)
 						if [ -z "${default_interface:-}" ]; then
@@ -520,8 +521,14 @@ __bootstrap_webi() {
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(ipconfig | awk '/Ethernet adapter/ {gsub(/:/,"",$3); print $3}' | head -n 1)
 						fi
+						if [ -n "${set_system_proxy:-}" ]; then
+							inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config.tmp")
+							sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config.tmp"
+							sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: $set_system_proxy/g" "${WEBI_PKG_WORKDIR}/config.tmp"
+						fi
 						;;
 					esac
+
 					mv "${WEBI_PKG_WORKDIR}/config.tmp" "${WEBI_PKG_WORKDIR}/config.json"
 					echo "Saved as ${WEBI_PKG_WORKDIR}/config.json"
 					echo ""
@@ -766,6 +773,10 @@ fi
 
 if echo "$args" | grep -E '^default_interface=' >/dev/null; then
 	default_interface=$(echo "$args" | grep -E '^default_interface=' | cut -d'=' -f2)
+fi
+
+if echo "$args" | grep -E '^set_system_proxy=' >/dev/null; then
+	set_system_proxy=$(echo "$args" | grep -E '^set_system_proxy=' | cut -d'=' -f2)
 fi
 
 __bootstrap_webi
