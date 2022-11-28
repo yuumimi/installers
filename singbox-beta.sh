@@ -571,11 +571,11 @@ __bootstrap_webi() {
 				;;
 			esac
 
-			log_line=$(cat "$log" | head -n 9 | awk 'END{print NR}')
-			echo "$log_line"
+			singbox_status=$(cat "$log" | head -n 9 | awk 'END{print NR}')
+			echo "$singbox_status"
 			echo ""
 
-			if [ "$log_line" -eq "9" ]; then
+			if [ "$singbox_status" -eq "9" ]; then
 				printf "\e[36m****************************************************************\e[0m\n"
 				printf "\e[36m*                                                              *\e[0m\n"
 				printf "\e[36m*\e[0m    控制面板: \033[04m\e[36mhttp://127.0.0.1:9090/ui/#/proxies\e[0m              \e[36m*\e[0m\n"
