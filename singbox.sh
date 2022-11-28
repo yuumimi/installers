@@ -555,20 +555,8 @@ __bootstrap_webi() {
 			sleep 3
 			if [ "$OS" = "windows" ]; then
 				sleep 7
-				n=0
-				until [ "$n" -ge 3 ]; do
-					err_tun=$(cat "$log" | grep -o "configure tun interface")
-					if [ "$err_tun" -eq "configure tun interface" ]; then
-						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-						echo "启动失败,重试..."
-						sleep 10
-						n=$((n + 1))
-					else
-						break
-					fi
-				done
 			fi
-			cat "$log" | head -n 9
+			cat "$log" | head -n 7
 			echo ""
 			case $OS in
 			linux)
