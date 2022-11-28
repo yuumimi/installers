@@ -552,51 +552,33 @@ __bootstrap_webi() {
 			_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 
 			printf "\n\n正在启动 sing-box...\n\n"
-			sleep 3
-			if [ "$OS" = "windows" ]; then
-				sleep 7
-			fi
-			cat "$log" | head -n 7
-			echo ""
+
 			case $OS in
 			linux)
+				sleep 5
+				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
 				tun=$(ip a | grep "${inet4_address:-}")
 				;;
 			darwin)
+				sleep 5
+				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
 				tun=$(ifconfig | grep "${inet4_address:-}")
+
 				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
 				_sudo dscacheutil -flushcache
 				_sudo killall -HUP mDNSResponder
 				;;
 			windows)
+				sleep 10
+				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				tun=$(ipconfig | grep "${inet4_address:-}")
 				;;
 			esac
 
-			if [ -n "${tun:-}" ]; then
-				printf "\e[36m****************************************************************\e[0m\n"
-				printf "\e[36m*                                                              *\e[0m\n"
-				printf "\e[36m*\e[0m    控制面板: \033[04m\e[36mhttp://127.0.0.1:9090/ui/#/proxies\e[0m              \e[36m*\e[0m\n"
-				printf "\e[36m*                                                              *\e[0m\n"
-				printf "\e[36m*\e[0m    在浏览器中打开控制面板测速后选择\e[33m有延迟\e[0m的节点              \e[36m*\e[0m\n"
-				printf "\e[36m*                                                              *\e[0m\n"
-				printf "\e[36m****************************************************************\e[0m\n"
-				echo ""
-				printf "\e[32m****************************************************************\e[0m\n"
-				printf "\e[32m*                                                              *\e[0m\n"
-				printf "\e[32m*\e[0m    sing-box 已在后台运行 \e[33m再次运行一键脚本可停止 sing-box\e[0m     \e[32m*\e[0m\n"
-				printf "\e[32m*                                                              *\e[0m\n"
-				printf "\e[32m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[32m*\e[0m\n"
-				printf "\e[32m*                                                              *\e[0m\n"
-				printf "\e[32m****************************************************************\e[0m\n"
-				echo ""
-				echo ""
-				echo ""
-				exit 0
+			if [ -n "${pid:-}" ]; then
+				_singbox_done_message
 			else
-				printf "\e[31msing-box 无法启动,请退出安全卫士/电脑管家等安全类软件后再试.\e[0m\n\n"
-				rm -rf "$HOME/._cache"
-				exit 1
+				_singbox_fail_message
 			fi
 		}
 
@@ -629,6 +611,37 @@ __bootstrap_webi() {
 					exit 1
 				fi
 			fi
+		}
+
+		_singbox_done_message() {
+			printf "\e[36m****************************************************************\e[0m\n"
+			printf "\e[36m*                                                              *\e[0m\n"
+			printf "\e[36m*\e[0m    控制面板: \033[04m\e[36mhttp://127.0.0.1:9090/ui/#/proxies\e[0m              \e[36m*\e[0m\n"
+			printf "\e[36m*                                                              *\e[0m\n"
+			printf "\e[36m*\e[0m    在浏览器中打开控制面板测速后选择\e[33m有延迟\e[0m的节点              \e[36m*\e[0m\n"
+			printf "\e[36m*                                                              *\e[0m\n"
+			printf "\e[36m****************************************************************\e[0m\n"
+			echo ""
+			printf "\e[32m****************************************************************\e[0m\n"
+			printf "\e[32m*                                                              *\e[0m\n"
+			printf "\e[32m*\e[0m    sing-box 已在后台运行 \e[33m再次运行一键脚本可停止 sing-box\e[0m     \e[32m*\e[0m\n"
+			printf "\e[32m*                                                              *\e[0m\n"
+			printf "\e[32m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[32m*\e[0m\n"
+			printf "\e[32m*                                                              *\e[0m\n"
+			printf "\e[32m****************************************************************\e[0m\n"
+			echo ""
+			echo ""
+			echo ""
+			exit 0
+		}
+
+		_singbox_fail_message() {
+			printf "\e[31msing-box 无法启动,请重试.\e[0m\n"
+			rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache"
+			echo ""
+			echo ""
+			echo ""
+			exit 1
 		}
 
 		init_singbox() {
