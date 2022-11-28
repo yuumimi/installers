@@ -572,7 +572,7 @@ __bootstrap_webi() {
 			esac
 
 			log_line=$(cat "$log" | head -n 9 | awk 'END{print NR}')
-			echo "$line"
+			echo "$log_line"
 			echo ""
 
 			if [ "$log_line" -eq "9" ]; then
