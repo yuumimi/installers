@@ -578,7 +578,28 @@ __bootstrap_webi() {
 			if [ -n "${pid:-}" ]; then
 				_singbox_done_message
 			else
-				_singbox_fail_message
+				if [ "$OS" = "windows" ]; then
+					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+					printf "\n\n启动失败,正在重试...\n\n"
+					sleep 5
+					if [ -n "${pid:-}" ]; then
+						_singbox_done_message
+					else
+						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config.json")
+						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config.json" 2>/dev/null
+						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: $set_system_proxy/g" "${WEBI_PKG_WORKDIR}/config.json" 2>/dev/null
+						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+						printf "\n\n启动失败,尝试系统代理模式...\n\n"
+						sleep 5
+						if [ -n "${pid:-}" ]; then
+							_singbox_done_message
+						else
+							_singbox_fail_message
+						fi
+					fi
+				else
+					_singbox_fail_message
+				fi
 			fi
 		}
 
