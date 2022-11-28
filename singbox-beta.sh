@@ -571,7 +571,7 @@ __bootstrap_webi() {
 				;;
 			esac
 
-			singbox_status=$(cat "${WEBI_PKG_WORKDIR}/sing-box.log" | head -n 9 | awk 'END{print NR}')
+			singbox_status=$(cat "${WEBI_PKG_WORKDIR}/$WEBI_PKG.log" | head -n 9 | awk 'END{print NR}')
 			echo "$singbox_status"
 			echo ""
 
