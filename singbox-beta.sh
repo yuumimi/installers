@@ -555,11 +555,11 @@ __bootstrap_webi() {
 
 			case $OS in
 			linux)
-				sleep 3
+				sleep 5
 				tun=$(ip a | grep "${inet4_address:-}")
 				;;
 			darwin)
-				sleep 3
+				sleep 5
 				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
 				_sudo dscacheutil -flushcache
 				_sudo killall -HUP mDNSResponder
@@ -571,7 +571,7 @@ __bootstrap_webi() {
 				;;
 			esac
 
-			singbox_status=$(cat "$log" | head -n 9 | awk 'END{print NR}')
+			singbox_status=$(cat "${WEBI_PKG_WORKDIR}/sing-box.log" | head -n 9 | awk 'END{print NR}')
 			echo "$singbox_status"
 			echo ""
 
