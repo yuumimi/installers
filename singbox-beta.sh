@@ -635,8 +635,9 @@ __bootstrap_webi() {
 			fi
 			if [ -n "${pid:-}" ]; then
 				_sudo kill -9 $pid
-				printf "\n\n\n"
+				echo ""
 				_sleep
+				echo ""
 			fi
 		}
 
