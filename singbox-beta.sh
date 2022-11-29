@@ -634,10 +634,7 @@ __bootstrap_webi() {
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
 			fi
 			if [ -n "${pid:-}" ]; then
-				_sudo kill -9 $pid
-				echo ""
-				_sleep
-				echo ""
+				_sudo kill -9 $pid >/dev/null 2>&1
 			fi
 		}
 
