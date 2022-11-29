@@ -335,7 +335,7 @@ __bootstrap_webi() {
 		#!/bin/sh
 
 		_sleep() {
-			sleep=${1:-5}}
+			sleep=${1:-5}
 			txt="${2:-}"
 			while [ $sleep -gt 0 ]; do
 				echo -n "$txt,请等待 $sleep 秒..."
