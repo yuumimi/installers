@@ -607,20 +607,12 @@ __bootstrap_webi() {
 				set +e
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-				if [ -n "${pid:-}" ]; then
-					printf "\n\n\n"
-					_sleep 5 "退出 sing-box"
-					exit 0
-				else
+				if [ -z "${pid:-}" ]; then
 					printf "\n启动失败,正在重试...\n"
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 					sleep 5
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-					if [ -n "${pid:-}" ]; then
-						printf "\n\n\n"
-						_sleep 5 "退出 sing-box"
-						exit 0
-					else
+					if [ -z "${pid:-}" ]; then
 						printf "\n启动失败,尝试以'系统代理'模式启动...\n\n"
 						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
@@ -628,14 +620,6 @@ __bootstrap_webi() {
 						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						sleep 5
 						"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						if [ $? -eq 0 ]; then
-							printf "\n\n\n"
-							_sleep 5 "退出 sing-box"
-							exit 0
-						else
-							printf "\n启动失败,请重启设备后再试.\n\n"
-							exit 1
-						fi
 					fi
 				fi
 				set -e
