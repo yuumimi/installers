@@ -335,9 +335,10 @@ __bootstrap_webi() {
 		#!/bin/sh
 
 		_sleep() {
-			sleep=10
+			sleep=$1
+			txt="$2"
 			while [ $sleep -gt 0 ]; do
-				echo -n "退出 sing-box 请等待 $sleep 秒..."
+				echo -n "$txt,请等待 $sleep 秒..."
 				sleep 1
 				sleep=$(($sleep - 1))
 				echo -ne "\r     \r"
@@ -572,14 +573,14 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			printf "\n\n正在启动 sing-box...\n\n"
+			_sleep 5 "\n\n启动 sing-box\n\n"
 
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ $? -eq 0 ]; then
 					printf "\n\n\n"
-					_sleep
+					_sleep 5 "退出 sing-box"
 					exit 0
 				else
 					printf "\n启动失败,请重试.\n\n"
@@ -593,7 +594,7 @@ __bootstrap_webi() {
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ $? -eq 0 ]; then
 					printf "\n\n\n"
-					_sleep
+					_sleep 5 "退出 sing-box"
 					exit 0
 				else
 					printf "\n启动失败,请重试.\n\n"
@@ -606,16 +607,16 @@ __bootstrap_webi() {
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ -n "${pid:-}" ]; then
 					printf "\n\n\n"
-					_sleep
+					_sleep 5 "退出 sing-box"
 					exit 0
 				else
 					printf "\n启动失败,正在重试...\n\n"
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-					sleep 10
+					sleep 5
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 					if [ -n "${pid:-}" ]; then
 						printf "\n\n\n"
-						_sleep
+						_sleep 5 "退出 sing-box"
 						exit 0
 					else
 						printf "\n启动失败,尝试以'系统代理'模式启动...\n\n"
@@ -623,11 +624,11 @@ __bootstrap_webi() {
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						sleep 10
+						sleep 5
 						"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						if [ $? -eq 0 ]; then
 							printf "\n\n\n"
-							_sleep
+							_sleep 5 "退出 sing-box"
 							exit 0
 						else
 							printf "\n启动失败,请重启设备后再试.\n\n"
