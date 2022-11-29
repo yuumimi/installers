@@ -573,7 +573,9 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			_sleep 5 "\n\n启动 sing-box\n\n"
+			printf "\n\n"
+			_sleep 5 "启动 sing-box"
+			printf "\n"
 
 			case $OS in
 			linux)
