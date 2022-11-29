@@ -573,7 +573,7 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			printf "\n\n"
+			printf "\n"
 			_sleep 5 "启动 sing-box"
 			printf "\n"
 
