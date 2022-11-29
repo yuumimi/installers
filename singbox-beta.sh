@@ -346,26 +346,36 @@ __bootstrap_webi() {
 
 		_sudo() {
 			log="${WEBI_PKG_WORKDIR}/$WEBI_PKG.log"
-			if [ "$OS" = "windows" ]; then
-				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-					# nohup "${@}" >"$log" 2>&1 &
-					"${@}"
-				else
-					echo "权限不足,必须以管理员身份运行 Git Bash."
-					echo "右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定"
-					# nohup "${@}" >"$log" 2>&1 &
-					"${@}"
-				fi
-			else
-				if [[ $(id -u) -ne 0 ]]; then
+			case $OS in
+			linux)
+				if [ $EUID -ne 0 ]; then
 					askPass
+					echo "$PWORD" | sudo -S "${@}" || (rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache" && printf "\n密码错误!请关闭本窗口,然后新建终端窗口,再次运行脚本.\n\n" && exit 1)
 					# echo "$PWORD" | nohup sudo -S "${@}" >"$log" 2>&1 &
-					echo "$PWORD" | sudo -S "${@}" || (rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache" && exit 1)
 				else
+					"${@}"
 					# nohup "${@}" >"$log" 2>&1 &
+				fi
+				;;
+			darwin)
+				if [ $EUID -ne 0 ]; then
+					askPass
+					echo "$PWORD" | sudo -S "${@}" || (rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache" && printf "\n密码错误!请关闭本窗口,然后新建终端窗口,再次运行脚本.\n\n" && exit 1)
+					# echo "$PWORD" | nohup sudo -S "${@}" >"$log" 2>&1 &
+				else
+					"${@}"
+					# nohup "${@}" >"$log" 2>&1 &
+				fi
+				;;
+			windows)
+				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
+					"${@}"
+				else
+					printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
 					"${@}"
 				fi
-			fi
+				;;
+			esac
 		}
 
 		askPass() {
@@ -562,49 +572,72 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			if [ "$OS" = "darwin" ]; then
-				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
-				_sudo dscacheutil -flushcache
-				_sudo killall -HUP mDNSResponder
-			fi
-
 			printf "\n\n正在启动 sing-box...\n\n"
-			set +e
-			_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-			if [ $? -eq 0 ]; then
-				echo ""
-				echo ""
-				echo ""
-				_sleep
-				exit 0
-			else
-				echo "启动失败,重试中..."
-				sleep 10
+
+			case $OS in
+			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ $? -eq 0 ]; then
-					echo ""
-					echo ""
-					echo ""
+					printf "\n\n\n"
 					_sleep
 					exit 0
 				else
-					if [ "$OS" = "windows" ]; then
-						echo "启动失败,尝试以'系统代理'模式启动..."
+					printf "\n启动失败,请重试.\n\n"
+					exit 1
+				fi
+				;;
+			darwin)
+				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
+				_sudo dscacheutil -flushcache
+				_sudo killall -HUP mDNSResponder
+				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				if [ $? -eq 0 ]; then
+					printf "\n\n\n"
+					_sleep
+					exit 0
+				else
+					printf "\n启动失败,请重试.\n\n"
+					exit 1
+				fi
+				;;
+			windows)
+				set +e
+				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
+				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				if [ -n "${pid:-}" ]; then
+					printf "\n\n\n"
+					_sleep
+					exit 0
+				else
+					printf "\n启动失败,正在重试...\n\n"
+					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
+					sleep 10
+					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+					if [ -n "${pid:-}" ]; then
+						printf "\n\n\n"
+						_sleep
+						exit 0
+					else
+						printf "\n启动失败,尝试以'系统代理'模式启动...\n\n"
 						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+						sleep 10
+						"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						if [ $? -eq 0 ]; then
-							echo ""
-							echo ""
-							echo ""
+							printf "\n\n\n"
 							_sleep
 							exit 0
+						else
+							printf "\n启动失败,请重启设备后再试.\n\n"
+							exit 1
 						fi
 					fi
 				fi
-			fi
+				set -e
+				;;
+			esac
 		}
 
 		singbox_stop() {
@@ -615,9 +648,7 @@ __bootstrap_webi() {
 			fi
 			if [ -n "${pid:-}" ]; then
 				_sudo kill -9 $pid
-				echo ""
-				echo ""
-				echo ""
+				printf "\n\n\n"
 				_sleep
 			fi
 		}
