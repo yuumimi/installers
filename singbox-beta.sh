@@ -612,7 +612,7 @@ __bootstrap_webi() {
 					_sleep 5 "退出 sing-box"
 					exit 0
 				else
-					printf "\n启动失败,正在重试...\n\n"
+					printf "\n启动失败,正在重试...\n"
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 					sleep 5
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
