@@ -596,6 +596,7 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
+				printf "\n以 \e[32mVPN / TUN / TAP / 增强模式\e[0m启动...\n"
 				set +e
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
