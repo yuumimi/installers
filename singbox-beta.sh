@@ -573,20 +573,15 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			printf "\n"
-			_sleep 5 "启动 sing-box"
-			printf "\n"
+			printf "\n启动 sing-box...\n"
+			sleep 5
 
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ $? -eq 0 ]; then
-					printf "\n\n\n"
-					_sleep 5 "退出 sing-box"
+					printf "\n\n退出 sing-box...\n\n"
 					exit 0
-				else
-					printf "\n启动失败,请重试.\n\n"
-					exit 1
 				fi
 				;;
 			darwin)
@@ -595,12 +590,9 @@ __bootstrap_webi() {
 				_sudo killall -HUP mDNSResponder
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ $? -eq 0 ]; then
-					printf "\n\n\n"
-					_sleep 5 "退出 sing-box"
+					printf "\n\n退出 sing-box...\n\n"
+					sleep 5
 					exit 0
-				else
-					printf "\n启动失败,请重试.\n\n"
-					exit 1
 				fi
 				;;
 			windows)
@@ -608,18 +600,15 @@ __bootstrap_webi() {
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ -z "${pid:-}" ]; then
-					printf "\n启动失败,正在重试...\n"
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-					sleep 5
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 					if [ -z "${pid:-}" ]; then
-						printf "\n启动失败,尝试以'系统代理'模式启动...\n\n"
+						printf "\nVPN / TUN / TAP / 增强模式启动失败,以\e[32m系统代理模式\e[0m启动...\n"
 						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						sleep 5
-						"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+						nohup "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json" >"${WEBI_PKG_WORKDIR}/$WEBI_PKG.log" 2>&1 &
 					fi
 				fi
 				set -e
@@ -634,7 +623,7 @@ __bootstrap_webi() {
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
 			fi
 			if [ -n "${pid:-}" ]; then
-				_sudo kill -9 $pid >/dev/null 2>&1
+				_sudo kill -9 $pid
 			fi
 		}
 
@@ -658,15 +647,6 @@ __bootstrap_webi() {
 			echo ""
 			echo ""
 			exit 0
-		}
-
-		_singbox_fail_message() {
-			printf "\e[31msing-box 无法启动,请重试.\e[0m\n"
-			rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache"
-			echo ""
-			echo ""
-			echo ""
-			exit 1
 		}
 
 		_singbox_stop_message() {
