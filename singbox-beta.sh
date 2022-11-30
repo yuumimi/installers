@@ -597,12 +597,13 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				printf "\n以\e[32m增强模式\e[0m启动...\n增强模式通过关闭本窗口来退出 sing-box.\n\n"
+				printf "\n以\e[32m增强模式\e[0m启动...\n"
 				n=0
 				until [ "$n" -ge 3 ]; do
 					set +e
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
+					echo "重试"
 					sleep 5
 					set -e
 				done
