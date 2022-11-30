@@ -604,7 +604,7 @@ __bootstrap_webi() {
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 					if [ -z "${pid:-}" ]; then
-						printf "\nVPN / TUN / TAP / 增强模式启动失败,以\e[32m系统代理模式\e[0m启动...\n"
+						printf "\n权限不足, VPN / TUN / TAP / 增强模式启动失败,以\e[32m系统代理模式\e[0m启动...\n"
 						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
