@@ -334,24 +334,49 @@ __bootstrap_webi() {
 		printf ""
 		#!/bin/sh
 
+		_sleep() {
+			sleep=${1:-5}
+			txt="${2:-}"
+			while [ $sleep -gt 0 ]; do
+				echo -n "$txt,请等待 $sleep 秒..."
+				sleep 1
+				sleep=$(($sleep - 1))
+				echo -ne "\r     \r"
+			done
+		}
+
 		_sudo() {
 			log="${WEBI_PKG_WORKDIR}/$WEBI_PKG.log"
-			if [ "$OS" = "windows" ]; then
-				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-					nohup "${@}" >"$log" 2>&1 &
-				else
-					echo "权限不足,必须以管理员身份运行 Git Bash."
-					echo "右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定"
-					nohup "${@}" >"$log" 2>&1 &
-				fi
-			else
-				if [[ $(id -u) -ne 0 ]]; then
+			case $OS in
+			linux)
+				if [ $EUID -ne 0 ]; then
 					askPass
-					echo "$PWORD" | nohup sudo -S "${@}" >"$log" 2>&1 &
+					echo "$PWORD" | sudo -S "${@}" || (rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache" && printf "\n密码错误!请关闭本窗口,然后新建终端窗口,再次运行脚本.\n\n" && exit 1)
+					# echo "$PWORD" | nohup sudo -S "${@}" >"$log" 2>&1 &
 				else
-					nohup "${@}" >"$log" 2>&1 &
+					"${@}"
+					# nohup "${@}" >"$log" 2>&1 &
 				fi
-			fi
+				;;
+			darwin)
+				if [ $EUID -ne 0 ]; then
+					askPass
+					echo "$PWORD" | sudo -S "${@}" || (rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache" && printf "\n密码错误!请关闭本窗口,然后新建终端窗口,再次运行脚本.\n\n" && exit 1)
+					# echo "$PWORD" | nohup sudo -S "${@}" >"$log" 2>&1 &
+				else
+					"${@}"
+					# nohup "${@}" >"$log" 2>&1 &
+				fi
+				;;
+			windows)
+				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
+					"${@}"
+				else
+					printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
+					"${@}"
+				fi
+				;;
+			esac
 		}
 
 		askPass() {
@@ -448,28 +473,29 @@ __bootstrap_webi() {
 				# we want the flags to be split
 				curl -fSL $my_show_progress -H "User-Agent: curl $WEBI_UA" "$my_url" -o "$my_dl.part"
 			fi
-
-			mv "$my_dl.part" "$my_dl"
-			case $my_name in
-			yacd)
-				printf ""
-				;;
-			geoip)
-				echo "Saved as $my_dl"
-				echo ""
-				;;
-			geosite)
-				echo "Saved as $my_dl"
-				echo ""
-				;;
-			config)
-				printf ""
-				;;
-			*)
-				echo "Saved as $my_dl"
-				echo ""
-				;;
-			esac
+			if [ -f "$my_dl.part" ]; then
+				mv "$my_dl.part" "$my_dl"
+				case $my_name in
+				yacd)
+					printf ""
+					;;
+				geoip)
+					echo "Saved as $my_dl"
+					echo ""
+					;;
+				geosite)
+					echo "Saved as $my_dl"
+					echo ""
+					;;
+				config)
+					printf ""
+					;;
+				*)
+					echo "Saved as $my_dl"
+					echo ""
+					;;
+				esac
+			fi
 		}
 
 		download_deps() {
@@ -501,7 +527,6 @@ __bootstrap_webi() {
 			fi
 			if [ -f "${WEBI_PKG_WORKDIR}/config.tmp" ]; then
 				if "$pkg_dst_cmd" check -c "${WEBI_PKG_WORKDIR}/config.tmp" 2>&1; then
-
 					case $OS in
 					linux)
 						if [ -z "${default_interface:-}" ]; then
@@ -528,7 +553,6 @@ __bootstrap_webi() {
 						fi
 						;;
 					esac
-
 					mv "${WEBI_PKG_WORKDIR}/config.tmp" "${WEBI_PKG_WORKDIR}/config.json"
 					echo "Saved as ${WEBI_PKG_WORKDIR}/config.json"
 					echo ""
@@ -549,58 +573,47 @@ __bootstrap_webi() {
 				exit 1
 			fi
 
-			_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-
-			printf "\n\n正在启动 sing-box...\n\n"
+			printf "\n启动 sing-box...\n"
+			sleep 5
 
 			case $OS in
 			linux)
-				sleep 5
-				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
-				tun=$(ip a | grep "${inet4_address:-}")
+				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				if [ $? -eq 0 ]; then
+					printf "\n\n退出 sing-box...\n\n"
+					exit 0
+				fi
 				;;
 			darwin)
-				sleep 5
-				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
-				tun=$(ifconfig | grep "${inet4_address:-}")
-
 				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
 				_sudo dscacheutil -flushcache
 				_sudo killall -HUP mDNSResponder
+				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				if [ $? -eq 0 ]; then
+					printf "\n\n退出 sing-box...\n\n"
+					sleep 5
+					exit 0
+				fi
 				;;
 			windows)
-				sleep 10
+				set +e
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-				tun=$(ipconfig | grep "${inet4_address:-}")
+				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				if [ -z "${pid:-}" ]; then
+					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
+					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+					if [ -z "${pid:-}" ]; then
+						printf "\nVPN / TUN / TAP / 增强模式启动失败,以\e[32m系统代理模式\e[0m启动...\n"
+						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
+						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+						nohup "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json" >"${WEBI_PKG_WORKDIR}/$WEBI_PKG.log" 2>&1 &
+					fi
+				fi
+				set -e
 				;;
 			esac
-
-			if [ -n "${pid:-}" ]; then
-				_singbox_done_message
-			else
-				if [ "$OS" = "windows" ]; then
-					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-					printf "\n\n启动失败,正在重试...\n\n"
-					sleep 5
-					if [ -n "${pid:-}" ]; then
-						_singbox_done_message
-					else
-						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config.json")
-						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config.json" 2>/dev/null
-						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: $set_system_proxy/g" "${WEBI_PKG_WORKDIR}/config.json" 2>/dev/null
-						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-						printf "\n\n启动失败,尝试系统代理模式...\n\n"
-						sleep 5
-						if [ -n "${pid:-}" ]; then
-							_singbox_done_message
-						else
-							_singbox_fail_message
-						fi
-					fi
-				else
-					_singbox_fail_message
-				fi
-			fi
 		}
 
 		singbox_stop() {
@@ -611,26 +624,6 @@ __bootstrap_webi() {
 			fi
 			if [ -n "${pid:-}" ]; then
 				_sudo kill -9 $pid
-				echo ""
-				printf "\n\n正在停止 sing-box...\n\n"
-				sleep 3
-
-				if [ $? -eq 0 ]; then
-					printf "\e[31m****************************************************************\e[0m\n"
-					printf "\e[31m*                                                              *\e[0m\n"
-					printf "\e[31m*\e[0m    sing-box 已经停止运行 \e[33m再次运行一键脚本可启动 sing-box\e[0m     \e[31m*\e[0m\n"
-					printf "\e[31m*                                                              *\e[0m\n"
-					printf "\e[31m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[31m*\e[0m\n"
-					printf "\e[31m*                                                              *\e[0m\n"
-					printf "\e[31m****************************************************************\e[0m\n"
-					echo ""
-					echo ""
-					echo ""
-					exit 0
-				else
-					printf "\e[31msing-box 无法停止,请重启设备.\e[0m\n\n"
-					exit 1
-				fi
 			fi
 		}
 
@@ -656,13 +649,18 @@ __bootstrap_webi() {
 			exit 0
 		}
 
-		_singbox_fail_message() {
-			printf "\e[31msing-box 无法启动,请重试.\e[0m\n"
-			rm -rf "${WEBI_PKG_WORKDIR}/$WEBI_PKG.cache"
+		_singbox_stop_message() {
+			printf "\e[31m****************************************************************\e[0m\n"
+			printf "\e[31m*                                                              *\e[0m\n"
+			printf "\e[31m*\e[0m    sing-box 已经停止运行 \e[33m再次运行一键脚本可启动 sing-box\e[0m     \e[31m*\e[0m\n"
+			printf "\e[31m*                                                              *\e[0m\n"
+			printf "\e[31m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[31m*\e[0m\n"
+			printf "\e[31m*                                                              *\e[0m\n"
+			printf "\e[31m****************************************************************\e[0m\n"
 			echo ""
 			echo ""
 			echo ""
-			exit 1
+			exit 0
 		}
 
 		init_singbox() {
