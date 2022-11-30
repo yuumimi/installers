@@ -305,8 +305,6 @@ __bootstrap_webi() {
 	# a friendly message when all is well, showing the final install path in $HOME/.local
 	_webi_done_message() {
 		echo "Installed $(_webi_canonical_name) as $pkg_dst_cmd"
-		echo ""
-		init_singbox
 	}
 
 	##
@@ -331,7 +329,7 @@ __bootstrap_webi() {
 	__init_installer() {
 
 		# do nothing - to satisfy parser prior to templating
-		printf ""
+		printf "\n"
 		#!/bin/sh
 
 		_sleep() {
@@ -547,11 +545,6 @@ __bootstrap_webi() {
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(ipconfig | awk '/Ethernet adapter/ {gsub(/:/,"",$3); print $3}' | head -n 1)
 						fi
-						if [ -n "${set_system_proxy:-}" ]; then
-							inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config.tmp")
-							sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config.tmp"
-							sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: $set_system_proxy/g" "${WEBI_PKG_WORKDIR}/config.tmp"
-						fi
 						;;
 					esac
 					mv "${WEBI_PKG_WORKDIR}/config.tmp" "${WEBI_PKG_WORKDIR}/config.json"
@@ -570,51 +563,37 @@ __bootstrap_webi() {
 				inet4_address=$(cat "${WEBI_PKG_WORKDIR}/config.json" | awk '/"inet4_address"/ {gsub(/,|"|\/.*/,"",$2); print $2}' | cut -d ':' -f 2)
 				external_controller_port=$(cat "${WEBI_PKG_WORKDIR}/config.json" | awk '/"external_controller"/ {gsub(/,|"/,"",$2); print $2}' | cut -d ':' -f 2)
 			else
-				printf "sing-box 配置文件不存在("${WEBI_PKG_WORKDIR}/config.json")\n请重试 => 重启设备后再试 => 更换网络后再试.\n\n"
+				printf "sing-box 配置文件不存在,请重启设备或更换网络后再试.\n\n"
 				exit 1
 			fi
 
-			printf "\n启动 sing-box...\n"
+			printf "\n启动 sing-box...\n\n"
 			sleep 5
-
+			trap "printf '\n\n退出 sing-box...\n\n'; sleep 5; exit 0" 2
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-				if [ $? -eq 0 ]; then
-					printf "\n\n退出 sing-box...\n\n"
-					exit 0
-				fi
 				;;
 			darwin)
 				_sudo networksetup -setdnsservers Wi-Fi 223.5.5.5
 				_sudo dscacheutil -flushcache
 				_sudo killall -HUP mDNSResponder
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-				if [ $? -eq 0 ]; then
-					printf "\n\n退出 sing-box...\n\n"
-					sleep 5
-					exit 0
-				fi
 				;;
 			windows)
-				printf "\n以\e[32m增强模式\e[0m启动...\n增强模式通过关闭本窗口来退出 sing-box.\n\n"
-				set +e
-				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-				if [ -z "${pid:-}" ]; then
+				n=0
+				until [ "$n" -ge 3 ]; do
+					set +e
+					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
+					n=$((n + 1))
 					sleep 5
-					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-					if [ -z "${pid:-}" ]; then
-						printf "\n权限不足,增强模式启动失败,以\e[32m代理模式\e[0m启动...\n"
-						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
-						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-					fi
-				fi
-				set -e
+					set -e
+				done
+				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
+				sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 				;;
 			esac
 		}
@@ -626,44 +605,8 @@ __bootstrap_webi() {
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $2}')
 			fi
 			if [ -n "${pid:-}" ]; then
-				_sudo kill -9 $pid
+				_sudo kill -15 $pid
 			fi
-		}
-
-		_singbox_done_message() {
-			printf "\e[36m****************************************************************\e[0m\n"
-			printf "\e[36m*                                                              *\e[0m\n"
-			printf "\e[36m*\e[0m    控制面板: \033[04m\e[36mhttp://127.0.0.1:9090/ui/#/proxies\e[0m              \e[36m*\e[0m\n"
-			printf "\e[36m*                                                              *\e[0m\n"
-			printf "\e[36m*\e[0m    在浏览器中打开控制面板测速后选择\e[33m有延迟\e[0m的节点              \e[36m*\e[0m\n"
-			printf "\e[36m*                                                              *\e[0m\n"
-			printf "\e[36m****************************************************************\e[0m\n"
-			echo ""
-			printf "\e[32m****************************************************************\e[0m\n"
-			printf "\e[32m*                                                              *\e[0m\n"
-			printf "\e[32m*\e[0m    sing-box 已在后台运行 \e[33m再次运行一键脚本可停止 sing-box\e[0m     \e[32m*\e[0m\n"
-			printf "\e[32m*                                                              *\e[0m\n"
-			printf "\e[32m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[32m*\e[0m\n"
-			printf "\e[32m*                                                              *\e[0m\n"
-			printf "\e[32m****************************************************************\e[0m\n"
-			echo ""
-			echo ""
-			echo ""
-			exit 0
-		}
-
-		_singbox_stop_message() {
-			printf "\e[31m****************************************************************\e[0m\n"
-			printf "\e[31m*                                                              *\e[0m\n"
-			printf "\e[31m*\e[0m    sing-box 已经停止运行 \e[33m再次运行一键脚本可启动 sing-box\e[0m     \e[31m*\e[0m\n"
-			printf "\e[31m*                                                              *\e[0m\n"
-			printf "\e[31m*\e[0m    小技巧: 在此窗口中按一次或多次\e[33m 上方向键 \e[0m可显示一键脚本    \e[31m*\e[0m\n"
-			printf "\e[31m*                                                              *\e[0m\n"
-			printf "\e[31m****************************************************************\e[0m\n"
-			echo ""
-			echo ""
-			echo ""
-			exit 0
 		}
 
 		init_singbox() {
@@ -756,11 +699,12 @@ __bootstrap_webi() {
 			cd "$WEBI_TMP"
 			if [ -n "$(command -v pkg_done_message)" ]; then pkg_done_message; else _webi_done_message; fi
 		)
-
 		echo ""
 	fi
 
 	webi_path_add "$HOME/.local/bin"
+
+	init_singbox
 
 	# cleanup the temp directory
 	rm -rf "$WEBI_TMP"
@@ -812,10 +756,6 @@ fi
 
 if echo "$args" | grep -E '^default_interface=' >/dev/null; then
 	default_interface=$(echo "$args" | grep -E '^default_interface=' | cut -d'=' -f2)
-fi
-
-if echo "$args" | grep -E '^set_system_proxy=' >/dev/null; then
-	set_system_proxy=$(echo "$args" | grep -E '^set_system_proxy=' | cut -d'=' -f2)
 fi
 
 __bootstrap_webi
