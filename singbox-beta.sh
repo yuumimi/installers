@@ -601,7 +601,7 @@ __bootstrap_webi() {
 				n=0
 				until [ "$n" -ge 3 ]; do
 					set +e
-					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
+					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
 					echo "重试"
 					sleep 5
