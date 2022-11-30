@@ -369,12 +369,13 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-					"${@}"
-				else
-					printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
-					"${@}"
-				fi
+				"${@}"
+				# if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
+				# 	"${@}"
+				# else
+				# 	printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
+				# 	"${@}"
+				# fi
 				;;
 			esac
 		}
