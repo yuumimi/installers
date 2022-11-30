@@ -369,12 +369,13 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-					"${@}"
-				else
-					printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
-					"${@}"
-				fi
+				"${@}"
+				# if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
+				# 	"${@}"
+				# else
+				# 	printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
+				# 	"${@}"
+				# fi
 				;;
 			esac
 		}
@@ -596,22 +597,38 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				set +e
-				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-				if [ -z "${pid:-}" ]; then
-					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
-					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
-					if [ -z "${pid:-}" ]; then
-						printf "\nVPN / TUN / TAP / 增强模式启动失败,以\e[32m系统代理模式\e[0m启动...\n"
-						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
-						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-						nohup "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json" >"${WEBI_PKG_WORKDIR}/$WEBI_PKG.log" 2>&1 &
-					fi
-				fi
-				set -e
+				printf "\n以\e[32m增强模式\e[0m启动...\n增强模式通过关闭本窗口来退出 sing-box.\n\n"
+				n=0
+				until [ "$n" -ge 3 ]; do
+					set +e
+					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
+					n=$((n + 1))
+					sleep 5
+					set -e
+				done
+				printf "\n权限不足,增强模式启动失败,以\e[32m代理模式\e[0m启动...\n"
+				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
+				sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# set +e
+				# pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
+				# _sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				# if [ -z "${pid:-}" ]; then
+				# 	sleep 5
+				# 	pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
+				# 	_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
+				# 	if [ -z "${pid:-}" ]; then
+				# 		printf "\n权限不足,增强模式启动失败,以\e[32m代理模式\e[0m启动...\n"
+				# 		cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# 		inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
+				# 		sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# 		sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# 		"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# 	fi
+				# fi
+				# set -e
 				;;
 			esac
 		}
