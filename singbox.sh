@@ -602,6 +602,7 @@ __bootstrap_webi() {
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 				if [ -z "${pid:-}" ]; then
+					sleep 5
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 					if [ -z "${pid:-}" ]; then
