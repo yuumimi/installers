@@ -597,7 +597,7 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				printf "\n以\e[32m增强模式\e[0m启动...\n增强模式可以在本窗口上按 Ctrl + C 或者关闭本窗口来退出 sing-box.\n\n"
+				printf "\n以\e[32m增强模式\e[0m启动...\n增强模式通过关闭本窗口来退出 sing-box.\n\n"
 				set +e
 				pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
@@ -606,7 +606,7 @@ __bootstrap_webi() {
 					pid=$(ps aux | grep "[s]ing-box" | awk '{print $1}')
 					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
 					if [ -z "${pid:-}" ]; then
-						printf "\n权限不足,增强模式启动失败,以\e[32m代理模式\e[0m启动...\n代理模式只能在本窗口上按  Ctrl + C 退出 sing-box,关闭本窗口 sing-box 会在后台继续运行\n"
+						printf "\n权限不足,增强模式启动失败,以\e[32m代理模式\e[0m启动...\n代理模式只能通过在本窗口上按  Ctrl + C 来退出 sing-box,关闭本窗口 sing-box 会在后台继续运行\n"
 						cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 						inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 						sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
