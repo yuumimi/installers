@@ -733,7 +733,7 @@ init_os() {
 	OS=$(uname | tr '[:upper:]' '[:lower:]')
 	case "$OS" in
 	darwin) OS='darwin' ;;
-	linux) OS='linux' ;;
+	linux | Linlx) OS='linux' ;;
 	mingw* | msys* | cygwin*) OS='windows' ;;
 	*)
 		echo "OS ${OS} is not supported by this installation script"
