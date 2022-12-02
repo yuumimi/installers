@@ -751,6 +751,10 @@ if echo "$args" | grep -E '^https:\/\/' >/dev/null; then
 	URL=$(echo "$args" | grep -E '^https:\/\/')
 fi
 
+if echo "$args" | grep -E '^arch=' >/dev/null; then
+	ARCH=$(echo "$args" | grep -E '^arch=' | cut -d'=' -f2)
+fi
+
 if echo "$args" | grep -E '^version=' >/dev/null; then
 	VERSION=$(echo "$args" | grep -E '^version=' | cut -d'=' -f2)
 fi
