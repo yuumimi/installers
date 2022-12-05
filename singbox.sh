@@ -676,15 +676,17 @@ __bootstrap_webi() {
 			if [ -n "$(command -v pkg_install)" ]; then pkg_install; else webi_install; fi
 			chmod a+x "$pkg_src"
 			chmod a+x "$pkg_src_cmd"
-			if [ -z "$("$pkg_src_cmd" version)" ]; then
-				rm -rf "$pkg_src"
-				rm -rf "$pkg_src_cmd"
-				WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-amd64v3.${WEBI_EXT}"
-				WEBI_PKG_URL="${WEBI_HOST}/${WEBI_RELEASES}/${WEBI_TAG}/${WEBI_PKG_FILE}"
-				webi_pre_install
-				webi_install
-				chmod a+x "$pkg_src"
-				chmod a+x "$pkg_src_cmd"
+			if [ "$ARCH" = "amd64" ]; then
+				if [ -z "$("$pkg_src_cmd" version)" ]; then
+					rm -rf "$pkg_src"
+					rm -rf "$pkg_src_cmd"
+					WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-amd64v3.${WEBI_EXT}"
+					WEBI_PKG_URL="${WEBI_HOST}/${WEBI_RELEASES}/${WEBI_TAG}/${WEBI_PKG_FILE}"
+					webi_pre_install
+					webi_install
+					chmod a+x "$pkg_src"
+					chmod a+x "$pkg_src_cmd"
+				fi
 			fi
 		)
 
