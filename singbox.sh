@@ -335,9 +335,9 @@ __bootstrap_webi() {
 
 		_sleep() {
 			sleep=${1:-5}
-			txt="${2:-}"
+			info="${2:-}"
 			while [ $sleep -gt 0 ]; do
-				echo -n "$txt,请等待 $sleep 秒..."
+				echo -n "$info,请等待 $sleep 秒..."
 				sleep 1
 				sleep=$(($sleep - 1))
 				echo -ne "\r     \r"
@@ -368,13 +368,12 @@ __bootstrap_webi() {
 				fi
 				;;
 			windows)
-				"${@}"
-				# if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-				# 	"${@}"
-				# else
-				# 	printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
-				# 	"${@}"
-				# fi
+				if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
+					"${@}"
+				else
+					printf "\n权限不足,必须以管理员身份运行 Git Bash.\n右键点击 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定\n\n"
+					"${@}"
+				fi
 				;;
 			esac
 		}
