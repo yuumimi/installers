@@ -11,7 +11,7 @@ __bootstrap_webi() {
 	PKG_NAME='sing-box'
 	WEBI_OS="${OS}"
 	WEBI_ARCH="${ARCH}"
-	WEBI_VERSION="${VERSION:-1.1}"
+	WEBI_VERSION="${VERSION:-1.1.1}"
 	WEBI_TAG="v${WEBI_VERSION}"
 	if [ "$OS" = "windows" ]; then
 		WEBI_EXT='zip'
@@ -569,8 +569,8 @@ __bootstrap_webi() {
 			fi
 
 			printf "\n启动 sing-box...\n\n"
-			sleep 5
-			trap "printf '\n\n退出 sing-box...\n\n'; sleep 5; exit 0" 2
+			sleep 1
+			trap "printf '\n\n退出 sing-box...\n\n'; sleep 1; exit 0" 2
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
@@ -587,7 +587,7 @@ __bootstrap_webi() {
 					set +e
 					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
-					sleep 5
+					sleep 1
 					set -e
 				done
 				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
