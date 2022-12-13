@@ -541,10 +541,16 @@ __bootstrap_webi() {
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(route -n get default | awk '/interface/ {print $2}' | head -n 1)
 						fi
+						if [ -n "${default_interface:-}" ]; then
+							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
+						fi
 						;;
 					windows)
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(ipconfig | awk '/Ethernet adapter/ {gsub(/:/,"",$3); print $3}' | head -n 1)
+						fi
+						if [ -n "${default_interface:-}" ]; then
+							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
 						;;
 					esac
