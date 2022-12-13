@@ -541,16 +541,10 @@ __bootstrap_webi() {
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(route -n get default | awk '/interface/ {print $2}' | head -n 1)
 						fi
-						if [ -n "${default_interface:-}" ]; then
-							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
-						fi
 						;;
 					windows)
 						if [ -z "${default_interface:-}"]; then
 							default_interface=$(ipconfig | awk '/Ethernet adapter/ {gsub(/:/,"",$3); print $3}' | head -n 1)
-						fi
-						if [ -n "${default_interface:-}" ]; then
-							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
 						;;
 					esac
@@ -575,8 +569,8 @@ __bootstrap_webi() {
 			fi
 
 			printf "\n启动 sing-box...\n\n"
-			sleep 1
-			trap "printf '\n\n退出 sing-box...\n\n'; sleep 1; exit 0" 2
+			sleep 5
+			trap "printf '\n\n退出 sing-box...\n\n'; sleep 5; exit 0" 2
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
@@ -593,7 +587,7 @@ __bootstrap_webi() {
 					set +e
 					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
-					sleep 1
+					sleep 5
 					set -e
 				done
 				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
@@ -686,7 +680,7 @@ __bootstrap_webi() {
 				if [ -z "$("$pkg_src_cmd" version)" ]; then
 					rm -rf "$pkg_src"
 					rm -rf "$pkg_src_cmd"
-					WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-amd64v3.${WEBI_EXT}"
+					WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-${WEBI_ARCH}v3.${WEBI_EXT}"
 					WEBI_PKG_URL="${WEBI_HOST}/${WEBI_RELEASES}/${WEBI_TAG}/${WEBI_PKG_FILE}"
 					webi_pre_install
 					webi_install
