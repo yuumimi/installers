@@ -569,8 +569,8 @@ __bootstrap_webi() {
 			fi
 
 			printf "\n启动 sing-box...\n\n"
-			sleep 5
-			trap "printf '\n\n退出 sing-box...\n\n'; sleep 5; exit 0" 2
+			sleep 1
+			trap "printf '\n\n退出 sing-box...\n\n'; sleep 1; exit 0" 2
 			case $OS in
 			linux)
 				_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR"
@@ -587,7 +587,7 @@ __bootstrap_webi() {
 					set +e
 					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
-					sleep 5
+					sleep 1
 					set -e
 				done
 				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
