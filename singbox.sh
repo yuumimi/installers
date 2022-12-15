@@ -584,16 +584,17 @@ __bootstrap_webi() {
 				n=0
 				until [ "$n" -ge 3 ]; do
 					set +e
-					"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
+					_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 					n=$((n + 1))
 					sleep 1
 					set -e
 				done
-				cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-				inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
-				sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-				sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
-				"$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# 如果 TUN 模式启动失败，则使用代理模式启动。
+				# cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# inbounds_tun=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
+				# sed -i "$((inbounds_tun + 1)),$((inbounds_tun + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# sed -i "s/\"set_system_proxy\"\: false/\"set_system_proxy\"\: true/g" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
+				# "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" -c "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 				;;
 			esac
 		}
