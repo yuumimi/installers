@@ -584,8 +584,8 @@ __bootstrap_webi() {
 			windows)
 				trap "printf '\n\n您按下了快捷键 [Ctrl + C],退出 sing-box...\n\n再次启动 sing-box 请按 [上] 再按 [回车].\n\n'; sleep 1; exit 0" 2
 				if [ -z "${set_system_proxy:-}" ]; then
-					if [ ! -f "$HOME/.local/tmp/sing-box/wintun.sys" ]; then
-						download "https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/installers/main/wintun.sys" "$HOME/.local/tmp/sing-box/wintun.sys" "wintun.sys"
+					if [ ! -f "$HOME/wintun.sys" ]; then
+						download "https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/installers/main/wintun.sys" "$HOME/wintun.sys" "wintun.sys"
 					fi
 					n=0
 					until [ "$n" -ge 3 ]; do
