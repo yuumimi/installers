@@ -528,22 +528,22 @@ __bootstrap_webi() {
 				if "$pkg_dst_cmd" check -c "${WEBI_PKG_WORKDIR}/config.tmp" 2>&1; then
 					case $OS in
 					linux)
-						if [ -z "${default_interface:-}" ]; then
-							default_interface=$(ip route | awk '/default/ {print $5}' | head -n 1)
-						fi
+						# if [ -z "${default_interface:-}" ]; then
+						# 	default_interface=$(ip route | awk '/default/ {print $5}' | head -n 1)
+						# fi
 						if [ -n "${default_interface:-}" ]; then
 							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
 						sed -i "s/\"mtu\"\: 9000/\"mtu\"\: 1500/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						;;
 					darwin)
-						if [ -z "${default_interface:-}"]; then
-							default_interface=$(route -n get default | awk '/interface/ {print $2}' | head -n 1)
+						if [ -n "${default_interface:-}" ]; then
+							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
 						;;
 					windows)
-						if [ -z "${default_interface:-}"]; then
-							default_interface=$(ipconfig | awk '/Ethernet adapter/ {gsub(/:/,"",$3); print $3}' | head -n 1)
+						if [ -n "${default_interface:-}" ]; then
+							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
 						;;
 					esac
