@@ -528,9 +528,6 @@ __bootstrap_webi() {
 				if "$pkg_dst_cmd" check -c "${WEBI_PKG_WORKDIR}/config.tmp" 2>&1; then
 					case $OS in
 					linux)
-						# if [ -z "${default_interface:-}" ]; then
-						# 	default_interface=$(ip route | awk '/default/ {print $5}' | head -n 1)
-						# fi
 						if [ -n "${default_interface:-}" ]; then
 							sed -i "s/\"auto_detect_interface\"\: true/\"default_interface\"\: \"$default_interface\"/g" "${WEBI_PKG_WORKDIR}/config.tmp"
 						fi
@@ -584,9 +581,6 @@ __bootstrap_webi() {
 			windows)
 				trap "printf '\n\n您按下了快捷键 [Ctrl + C],退出 sing-box...\n\n再次启动 sing-box 请按 [上] 再按 [回车].\n\n'; sleep 1; exit 0" 2
 				if [ -z "${set_system_proxy:-}" ]; then
-					if [ ! -f "$HOME/wintun.sys" ]; then
-						download "https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/installers/main/wintun.sys" "$HOME/wintun.sys" "wintun.sys"
-					fi
 					n=0
 					until [ "$n" -ge 3 ]; do
 						set +e
