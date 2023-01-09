@@ -500,7 +500,7 @@ __bootstrap_webi() {
 		download_deps() {
 
 			set +e
-			find "${WEBI_PKG_WORKDIR}/yacd" -name "CNAME" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
+			# find "${WEBI_PKG_WORKDIR}/yacd" -name "CNAME" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
 			find "${WEBI_PKG_WORKDIR}" -name "geoip.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
 			find "${WEBI_PKG_WORKDIR}" -name "geosite.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
 			set -e
