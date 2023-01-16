@@ -192,7 +192,7 @@ __bootstrap_webi() {
 			fi
 			# shellcheck disable=SC2086
 			# we want the flags to be split
-			curl -fSL $my_show_progress -H "User-Agent: curl $WEBI_UA" "$my_url" -o "$my_dl.part"
+			curl -kfSL $my_show_progress -H "User-Agent: curl $WEBI_UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
 		echo "Saved as $my_dl"
@@ -470,7 +470,7 @@ __bootstrap_webi() {
 				fi
 				# shellcheck disable=SC2086
 				# we want the flags to be split
-				curl -fSL $my_show_progress -H "User-Agent: curl $WEBI_UA" "$my_url" -o "$my_dl.part"
+				curl -kfSL $my_show_progress -H "User-Agent: curl $WEBI_UA" "$my_url" -o "$my_dl.part"
 			fi
 			if [ -f "$my_dl.part" ]; then
 				mv "$my_dl.part" "$my_dl"
