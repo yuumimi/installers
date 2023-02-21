@@ -12,7 +12,7 @@ __bootstrap_webi() {
 	WEBI_OS="${OS}"
 	WEBI_ARCH="${ARCH}"
 	WEBI_VERSION="${VERSION:-2023022101}"
-	WEBI_TAG="v${WEBI_VERSION}"
+	WEBI_TAG="${WEBI_VERSION}"
 	if [ "$OS" = "windows" ]; then
 		WEBI_EXT='.exe'
 	else
