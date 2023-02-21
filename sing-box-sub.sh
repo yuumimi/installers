@@ -14,9 +14,7 @@ __bootstrap_webi() {
 	WEBI_VERSION="${VERSION:-2023022101}"
 	WEBI_TAG="v${WEBI_VERSION}"
 	if [ "$OS" = "windows" ]; then
-		WEBI_EXT='zip'
-	else
-		WEBI_EXT='tar.gz'
+		WEBI_EXT='exe'
 	fi
 	WEBI_PKG_FILE="${PKG_NAME}-${WEBI_VERSION}-${WEBI_OS}-${WEBI_ARCH}.${WEBI_EXT}"
 	WEBI_PKG_URL="${WEBI_HOST}/${WEBI_RELEASES}/${WEBI_TAG}/${WEBI_PKG_FILE}"
