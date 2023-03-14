@@ -582,15 +582,14 @@ __bootstrap_webi() {
 				trap "printf '\n\n您按下了快捷键 [Ctrl + C],退出 sing-box...\n\n再次启动 sing-box 请按 [上] 再按 [回车].\n\n'; sleep 1; exit 0" 2
 				if [ -z "${set_system_proxy:-}" ]; then
 					n=0
-					until [ "$n" -ge 3 ]; do
+					until [ "$n" -ge 2 ]; do
 						set +e
 						_sudo "$pkg_dst_cmd" run -D "$WEBI_PKG_WORKDIR" && break
 						n=$((n + 1))
 						sleep 1
 						set -e
 					done
-					printf "\n启动失败,请退出杀毒软件后再试,如果问题没有解决,请尝试以下方法:\n\n1. 重装操作系统为 Windows 10 64位 (推荐)\n2. 在一键脚本后面加 [一个空格] 再加一个参数 [set_system_proxy=true] 再启动\n3. 使用 Clash Meta 客户端 (教程在 sing-box 的下面)\n\n"
-				else
+					printf "\nTun 模式启动失败,以系统代理模式启动.\n\n"
 					cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 					inbounds_line_number=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 					sed -i "$((inbounds_line_number + 1)),$((inbounds_line_number + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
