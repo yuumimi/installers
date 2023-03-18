@@ -589,7 +589,8 @@ __bootstrap_webi() {
 						sleep 1
 						set -e
 					done
-					printf "\nTun 模式启动失败,以系统代理模式启动.\n\n"
+				else
+					printf "\n以系统代理模式启动.\n\n"
 					cp -f "${WEBI_PKG_WORKDIR}/config.json" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
 					inbounds_line_number=$(sed -n '/inbounds/=' "${WEBI_PKG_WORKDIR}/config_system_proxy.json")
 					sed -i "$((inbounds_line_number + 1)),$((inbounds_line_number + 11))d" "${WEBI_PKG_WORKDIR}/config_system_proxy.json"
