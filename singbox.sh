@@ -198,12 +198,12 @@ bootstrap_pkg() {
 
 		if [ -n "$WEBI_SINGLE" ] || [ "single" = "${1-}" ]; then
 			rm -rf "$pkg_dst_cmd"
-			ln -s "$pkg_src_cmd" "$pkg_dst_cmd"
+			ln -s "$pkg_src_cmd" "$pkg_dst_cmd" 2>/dev/null || cp -f "$pkg_src_cmd" "$pkg_dst_cmd" 2>/dev/null
 		else
 			# 'pkg_dst' will default to $HOME/.local/opt/<pkg>
 			# 'pkg_src' will be the installed version, such as to $HOME/.local/opt/<pkg>-<version>
 			rm -rf "$pkg_dst"
-			ln -s "$pkg_src" "$pkg_dst"
+			ln -s "$pkg_src" "$pkg_dst" 2>/dev/null || cp -f "$pkg_src" "$pkg_dst" 2>/dev/null
 		fi
 	}
 
