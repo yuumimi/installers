@@ -120,30 +120,6 @@ check_windows() {
 			exit 1
 		fi
 	fi
-	# 定义一组进程名称和对应的软件名称
-	PROCESS_NAMES="[C]lash [V]2ray [S]hadowsocks [3]60sd [Q]qpctray [L]sclisvc [H]uorongdun"
-	SOFTWARE_NAMES="Clash V2Ray Shadowsocks 360安全卫士 腾讯电脑管家 联想电脑管家 火绒安全软件"
-	RUNNING_PROCESSES=""
-	INDEX=1
-
-	# 检查每个进程是否正在运行，如果是，则将其对应的软件名称添加到 RUNNING_PROCESSES 变量中
-	for PROCESS_NAME in $PROCESS_NAMES; do
-		if ps -W | grep -i "$PROCESS_NAME" >/dev/null 2>&1; then
-			SOFTWARE_NAME=$(echo "$SOFTWARE_NAMES" | cut -d ' ' -f $INDEX)
-			RUNNING_PROCESSES="$RUNNING_PROCESSES $SOFTWARE_NAME"
-		fi
-		INDEX=$((INDEX + 1))
-	done
-
-	# 如果没有进程正在运行，返回 0，表示系统正常
-	if [ -z "$RUNNING_PROCESSES" ]; then
-		return 0
-	else
-		# 如果有进程正在运行，打印消息提示用户先退出这些软件，然后退出脚本
-		echo "以下软件可能会干扰 sing-box 的正常运行，请先退出："
-		echo "$RUNNING_PROCESSES"
-		exit 1
-	fi
 }
 
 sudo_cmd() {
@@ -870,7 +846,9 @@ linux)
 windows)
 	check_windows
 	echo -e
-	echo -e "检查运行环境,请稍等..."
+	echo -e "以下软件可能会干扰 sing-box 的正常运行，请退出："
+	echo -e
+	echo -e "Clash V2ray Shadowsocks 360安全卫士 腾讯电脑管家 联想电脑管家 火绒安全软件"
 	taskkill //IM "sing-box.exe" //F >nul 2>&1
 	if [ -f "${HOME}/.local/share/sing-box/cache.db" ]; then
 		for i in {1..10}; do
