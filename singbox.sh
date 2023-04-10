@@ -884,7 +884,7 @@ esac
 
 WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
-PKG_VERSION="${VERSION:-1.2.3}"
+PKG_VERSION="${VERSION:-1.2.2}"
 PKG_TAG="v${PKG_VERSION}"
 PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
 if [ "$OS" = "windows" ]; then
