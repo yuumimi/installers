@@ -873,7 +873,7 @@ windows)
 	echo -e "检查运行环境,请稍等..."
 	taskkill //IM "sing-box.exe" //F >nul 2>&1
 	if [ -f "${HOME}/.local/share/sing-box/cache.db" ]; then
-		for i in {1..30}; do
+		for i in {1..10}; do
 			mv "${HOME}/.local/share/sing-box/cache.db" "${HOME}/.local/share/sing-box/cache.db.bak" && break || sleep 1s
 		done
 		mv "${HOME}/.local/share/sing-box/cache.db.bak" "${HOME}/.local/share/sing-box/cache.db"
