@@ -869,10 +869,10 @@ linux)
 	;;
 windows)
 	check_windows
+	echo -e
+	echo -e "检查运行环境,请稍等..."
+	taskkill //IM "sing-box.exe" //F >nul 2>&1
 	if [ -f "${HOME}/.local/share/sing-box/cache.db" ]; then
-		echo -e
-		echo -e "检查运行环境,请稍等..."
-		taskkill //IM "sing-box.exe" //F >nul 2>&1
 		for i in {1..30}; do
 			mv "${HOME}/.local/share/sing-box/cache.db" "${HOME}/.local/share/sing-box/cache.db.bak" && break || sleep 1s
 		done
@@ -884,7 +884,7 @@ esac
 
 WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
-PKG_VERSION="${VERSION:-1.2.2}"
+PKG_VERSION="${VERSION:-1.2.3}"
 PKG_TAG="v${PKG_VERSION}"
 PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
 if [ "$OS" = "windows" ]; then
