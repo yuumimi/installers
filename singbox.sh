@@ -432,23 +432,29 @@ bootstrap_pkg() {
 	}
 
 	singbox_download_deps() {
+		set +e
+		find "${singbox_workdir}/yacd" -name "CNAME" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
+		find "${singbox_workdir}" -name "geoip.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
+		find "${singbox_workdir}" -name "geosite.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
+		set -e
+
 		month=$(date +%m)
 		day=$(date +%d)
 
-		if [ ! -f "${yacd_dir}/CNAME" ] || [ $day -eq 1 ] || [ $day -eq 11 ] || [ $day -eq 21 ]; then
+		if [ ! -f "${yacd_dir}/CNAME" ]; then
 			download "$yacd_url_mirror" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd" || download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
 			(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
 		fi
 
-		if [ ! -f "${pac_txt}" ] || [ $day -eq 1 ] || [ $day -eq 11 ] || [ $day -eq 21 ]; then
+		if [ ! -f "${pac_txt}" ]; then
 			(download "$pac_url_mirror" "$pac_txt" "PAC" || download "$pac_url" "$pac_txt" "PAC") && echo ""
 		fi
 
-		if [ ! -f "${geoip_db}" ] || [ $day -eq 1 ] || [ $day -eq 11 ] || [ $day -eq 21 ]; then
+		if [ ! -f "${geoip_db}" ]; then
 			(download "$geoip_url_mirror" "$geoip_db" "geoip" || download "$geoip_url" "$geoip_db" "geoip") && echo ""
 		fi
 
-		if [ ! -f "${geosite_db}" ] || [ $day -eq 1 ] || [ $day -eq 11 ] || [ $day -eq 21 ]; then
+		if [ ! -f "${geosite_db}" ]; then
 			(download "$geosite_url_mirror" "$geosite_db" "geosite" || download "$geosite_url" "$geosite_db" "geosite") && echo ""
 		fi
 	}
@@ -590,7 +596,7 @@ bootstrap_pkg() {
 						echo -e "${RED}启动失败${RESET}"
 						echo -e
 						echo -e "如果尝试 3 次均失败,请使用以下方法运行:"
-						echo -e "在一键脚本后面加 ${BOLD}${ORANGE}一个空格${RESET} 再加上 ${BOLD}${ORANGE}--chrome${RESET} 参数"
+						echo -e "在一键脚本后面加 ${BOLD}${ORANGE}一个空格${RESET} 再加上 ${BOLD}${ORANGE}chrome${RESET} 参数"
 						echo -e
 						exit 1
 					fi
@@ -815,13 +821,13 @@ for arg in $args; do
 	nic=*)
 		NIC=${arg#*=}
 		;;
-	--chrome)
+	chrome)
 		CHROME=true
 		;;
-	--edge)
+	edge)
 		EDGE=true
 		;;
-	--firefox)
+	firefox)
 		FIREFOX=true
 		;;
 	esac
