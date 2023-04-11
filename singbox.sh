@@ -426,18 +426,14 @@ bootstrap_pkg() {
 			curl -fSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
-		echo "Saved as $my_dl"
+		if ! [[ "$my_dl" =~ "config.json.tmp" ]]; then
+			echo "Saved as $my_dl"
+		fi
 	}
 
 	singbox_download_deps() {
 		month=$(date +%m)
 		day=$(date +%d)
-
-		# set +e
-		# find "${singbox_workdir}/yacd" -name "CNAME" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		# find "${singbox_workdir}" -name "geoip.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		# find "${singbox_workdir}" -name "geosite.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		# set -e
 
 		if [ ! -f "${yacd_dir}/CNAME" ] || [ $day -eq 1 ] || [ $day -eq 11 ] || [ $day -eq 21 ]; then
 			download "$yacd_url_mirror" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd" || download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
@@ -653,7 +649,7 @@ bootstrap_pkg() {
 						start firefox.exe -CreateProfile proxy || start "https://www.mozilla.org/zh-CN/firefox/all/#product-desktop-release"
 						sleep 3
 						cd "$APPDATA/Mozilla/Firefox/Profiles/"*.proxy
-						echo "user_pref(\"network.proxy.autoconfig_url\", "$PAC");" >>user.js
+						echo "user_pref(\"network.proxy.autoconfig_url\", $PAC);" >>user.js
 						echo 'user_pref("network.proxy.http", "127.0.0.1");' >user.js
 						echo "user_pref(\"network.proxy.http_port\", $MIXED_PORT);" >>user.js
 						echo 'user_pref("network.proxy.socks", "127.0.0.1");' >>user.js
