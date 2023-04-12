@@ -442,20 +442,20 @@ bootstrap_pkg() {
 		day=$(date +%d)
 
 		if [ ! -f "${yacd_dir}/CNAME" ]; then
-			download "$yacd_url_mirror" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd" || download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
+			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
 			(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
 		fi
 
 		if [ ! -f "${pac_txt}" ]; then
-			(download "$pac_url_mirror" "$pac_txt" "PAC" || download "$pac_url" "$pac_txt" "PAC") && echo ""
+			download "$pac_url" "$pac_txt" "PAC" && echo ""
 		fi
 
 		if [ ! -f "${geoip_db}" ]; then
-			(download "$geoip_url_mirror" "$geoip_db" "geoip" || download "$geoip_url" "$geoip_db" "geoip") && echo ""
+			download "$geoip_url" "$geoip_db" "geoip" && echo ""
 		fi
 
 		if [ ! -f "${geosite_db}" ]; then
-			(download "$geosite_url_mirror" "$geosite_db" "geosite" || download "$geosite_url" "$geosite_db" "geosite") && echo ""
+			download "$geosite_url" "$geosite_db" "geosite" && echo ""
 		fi
 	}
 
@@ -480,7 +480,8 @@ bootstrap_pkg() {
 
 	singbox_start_message() {
 		clear
-		echo -e "${GREEN}启动成功${RESET}"
+		echo -e
+		echo -e "${GREEN}启动成功,sing-box 正在运行中...${RESET}"
 		echo ""
 		echo -e "请勿强制关闭本窗口,退出 sing-box 请按 ${BOLD}${ORANGE}CTRL + C${RESET} "
 		echo ""
@@ -491,7 +492,7 @@ bootstrap_pkg() {
 		echo ""
 		sleep 3
 		clear
-		echo -e "${RED}退出成功${RESET}"
+		echo -e "${RED}退出成功,sing-box 已停止运行.${RESET}"
 		echo ""
 		echo -e "启动 sing-box 请按 ${BOLD}${ORANGE}上方向键${RESET} 再按 ${BOLD}${ORANGE}回车键${RESET}"
 		echo ""
@@ -523,7 +524,7 @@ bootstrap_pkg() {
 
 		PAC="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/pac.txt"
 
-		sed '66,77d' "$config_json" >"${singbox_workdir}/config_mixed.json"
+		sed '66,75d' "$config_json" >"${singbox_workdir}/config_mixed.json"
 
 		echo ""
 		echo -e "开始启动 sing-box ,请稍等..."
@@ -715,7 +716,6 @@ bootstrap_pkg() {
 			pkg_dst_cmd="${pkg_dst_cmd:-$HOME/.local/bin/$pkg_cmd_name}"
 			pkg_dst="$pkg_dst_cmd" # "$(dirname "$(dirname $pkg_dst_cmd)")"
 
-			#pkg_src_cmd="${pkg_src_cmd:-$HOME/.local/opt/$pkg_cmd_name-v$PKG_VERSION/bin/$pkg_cmd_name-v$PKG_VERSION}"
 			pkg_src_cmd="${pkg_src_cmd:-$HOME/.local/opt/$pkg_cmd_name-v$PKG_VERSION/bin/$pkg_cmd_name}"
 			pkg_src="$pkg_src_cmd" # "$(dirname "$(dirname $pkg_src_cmd)")"
 		else
@@ -867,6 +867,7 @@ PKG_NAME="sing-box"
 PKG_VERSION="${VERSION:-1.2.2}"
 PKG_TAG="v${PKG_VERSION}"
 PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
+# PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
 if [ "$OS" = "windows" ]; then
 	PKG_EXT=zip
 else
@@ -884,19 +885,19 @@ config_json_url="${URL:-}"
 config_json="${singbox_workdir}/config.json"
 
 yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
-yacd_url_mirror="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
+# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
 yacd_dir="${singbox_workdir}/yacd"
 
 pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
-pac_url_mirror="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
+# pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
 pac_txt="${singbox_workdir}/yacd/pac.txt"
 
 geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
-geoip_url_mirror="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
+# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
 geoip_db="${singbox_workdir}/geoip.db"
 
 geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
-geosite_url_mirror="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
+# geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
 
 ##
