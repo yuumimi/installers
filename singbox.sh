@@ -523,7 +523,7 @@ bootstrap_pkg() {
 
 		PAC="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/pac.txt"
 
-		sed '66,75d' "$config_json" >"${singbox_workdir}/config_mixed.json"
+		sed '66,77d' "$config_json" >"${singbox_workdir}/config_mixed.json"
 
 		echo ""
 		echo -e "开始启动 sing-box ,请稍等..."
