@@ -291,7 +291,7 @@ bootstrap_pkg() {
 			fi
 			# shellcheck disable=SC2086
 			# we want the flags to be split
-			curl -fSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
+			curl -kfSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
 		echo "Saved as $my_dl"
@@ -423,7 +423,7 @@ bootstrap_pkg() {
 			if is_interactive_shell; then
 				my_show_progress=""
 			fi
-			curl -fSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
+			curl -kfSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
 		if ! [[ "$my_dl" =~ "config.json.tmp" ]]; then
