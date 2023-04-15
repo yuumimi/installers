@@ -660,7 +660,7 @@ bootstrap_pkg() {
 			) &
 
 			for i in {1..2}; do
-				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json"
+				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json" && break || sleep 1s
 			done
 
 			;;
