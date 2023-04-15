@@ -122,6 +122,18 @@ check_windows() {
 	fi
 }
 
+process_stop() {
+	PROCESS_NAME=$1
+	while true; do
+		if tasklist | grep -i "${PROCESS_NAME}" >/dev/null 2>&1; then
+			taskkill //IM "${PROCESS_NAME}" //F >/dev/null 2>&1
+		else
+			break
+		fi
+		sleep 1
+	done
+}
+
 sudo_cmd() {
 	case "$OS" in
 	darwin)
@@ -466,6 +478,8 @@ bootstrap_pkg() {
 		fi
 		if [ -f "${singbox_workdir}/config.json.tmp" ]; then
 			if "$pkg_dst_cmd" check -c "${singbox_workdir}/config.json.tmp" 2>&1; then
+				"$pkg_dst_cmd" format -c "${singbox_workdir}/config.json.tmp" >"${singbox_workdir}/config.json.tmp.tmp"
+				mv "${singbox_workdir}/config.json.tmp.tmp" "${singbox_workdir}/config.json.tmp"
 				if [ -n "${NIC:-}" ]; then
 					sed -i "s/\"auto_detect_interface\": true/\"default_interface\": \"$NIC\"/g" "${singbox_workdir}/config.json.tmp"
 				fi
@@ -482,20 +496,18 @@ bootstrap_pkg() {
 		clear
 		echo -e
 		echo -e "${GREEN}启动成功,sing-box 正在运行中...${RESET}"
-		echo ""
+		echo -e
 		echo -e "请勿强制关闭本窗口,退出 sing-box 请按 ${BOLD}${ORANGE}CTRL + C${RESET} "
-		echo ""
+		echo -e
 	}
 
 	singbox_stop_message() {
-		echo "正在退出 sing-box, 请稍等..."
-		echo ""
-		sleep 3
 		clear
+		echo -e
 		echo -e "${RED}退出成功,sing-box 已停止运行.${RESET}"
-		echo ""
+		echo -e
 		echo -e "启动 sing-box 请按 ${BOLD}${ORANGE}上方向键${RESET} 再按 ${BOLD}${ORANGE}回车键${RESET}"
-		echo ""
+		echo -e
 		exit 0
 	}
 
@@ -524,34 +536,42 @@ bootstrap_pkg() {
 
 		PAC="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/pac.txt"
 
-		sed '66,75d' "$config_json" >"${singbox_workdir}/config_mixed.json"
+		awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_json") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_json") 'NR<start || NR>end' "$config_json" >"${singbox_workdir}/config_mixed.json"
+
+		open_url=$(command -v start || command -v open || command -v xdg-open)
 
 		echo ""
 		echo -e "开始启动 sing-box ,请稍等..."
-		open_url=$(command -v start || command -v open || command -v xdg-open)
+
 		case "$OS" in
 		linux)
 			trap singbox_stop_message INT
 
-			echo "" >"$singbox_log_file"
+			sudo_cmd echo "" >"$singbox_log_file"
 
 			(
-				if ! timeout 30s tail -f "$singbox_log_file" | grep -q "sing-box started"; then
-					clear
-					echo -e "${RED}启动失败${RESET}"
-					echo -e
-					echo -e "${BOLD}${ORANGE}请尝试重新启动设备${RESET}"
-					echo -e
-					exit 1
-				fi
-				singbox_start_message
-				sleep 3
-				$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+				for i in {1..8}; do
+					if grep -q "sing-box started" "$singbox_log_file"; then
+						singbox_start_message
+						sleep 3
+						$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+						break
+					fi
+					sleep 1
+				done
 			) &
 
 			for i in {1..2}; do
 				sudo_cmd "$pkg_dst_cmd" run -D "${singbox_workdir}" && break || sleep 1s
 			done
+
+			clear
+			echo -e
+			echo -e "${RED}启动失败${RESET}"
+			echo -e
+			echo -e "${BOLD}${ORANGE}请尝试重新启动设备${RESET}"
+			echo -e
+			exit 1
 
 			;;
 		darwin)
@@ -565,115 +585,84 @@ bootstrap_pkg() {
 			sudo_cmd echo "" >"$singbox_log_file"
 
 			(
-				timeout() { perl -e 'alarm shift; exec @ARGV' "$@"; }
-				if ! timeout 30s tail -f "$singbox_log_file" | grep -q "sing-box started"; then
-					clear
-					echo -e "${RED}启动失败${RESET}"
-					echo -e
-					echo -e "${BOLD}${ORANGE}请尝试重新启动设备${RESET}"
-					echo -e
-					exit 1
-				fi
-				singbox_start_message
-				sleep 3
-				$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+				for i in {1..8}; do
+					if grep -q "sing-box started" "$singbox_log_file"; then
+						singbox_start_message
+						sleep 3
+						$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+						break
+					fi
+					sleep 1
+				done
 			) &
 
 			for i in {1..2}; do
 				sudo_cmd "$pkg_dst_cmd" run -D "${singbox_workdir}" && break || sleep 1s
 			done
 
+			clear
+			echo -e
+			echo -e "${RED}启动失败${RESET}"
+			echo -e
+			echo -e "${BOLD}${ORANGE}请尝试重新启动设备${RESET}"
+			echo -e
+			exit 1
+
 			;;
 		windows)
 			trap singbox_stop_message INT
 
-			if [ -z "${CHROME:-}" ] && [ -z "${EDGE:-}" ] && [ -z "${FIREFOX:-}" ]; then
+			echo "" >"$singbox_log_file"
 
-				echo "" >"$singbox_log_file"
-
-				(
-					if ! timeout 30s tail -f "$singbox_log_file" | grep -q "sing-box started"; then
-						clear
-						echo -e "${RED}启动失败${RESET}"
-						echo -e
-						echo -e "如果尝试 3 次均失败,请使用以下方法运行:"
-						echo -e "在一键脚本后面加 ${BOLD}${ORANGE}一个空格${RESET} 再加上 ${BOLD}${ORANGE}chrome${RESET} 参数"
-						echo -e
-						exit 1
-					fi
-					singbox_start_message
-					sleep 3
-					$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
-				) &
-
-				for i in {1..2}; do
-					"$pkg_dst_cmd" run -D "${singbox_workdir}" && break || sleep 1s
-				done
-			else
-				process_stop() {
-					PROCESS_NAME=$1
-					while true; do
-						if tasklist | grep -i "${PROCESS_NAME}" >/dev/null 2>&1; then
-							taskkill //IM "${PROCESS_NAME}" //F >nul 2>&1
-							# echo "${PROCESS_NAME} 进程已终止"
+			(
+				for i in {1..16}; do
+					if grep -q "sing-box started" "$singbox_log_file"; then
+						if grep -q "inbound/tun.*started" "$singbox_log_file"; then
+							singbox_start_message
+							sleep 3
+							$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
 						else
-							# echo "${PROCESS_NAME} 进程未找到"
-							break
+							clear
+							echo -e
+							echo -e "${GREEN}启动成功,sing-box 正在运行中...${RESET}"
+							echo -e
+							echo -e "请勿强制关闭本窗口,退出 sing-box 请按 ${BOLD}${ORANGE}CTRL + C${RESET} "
+							echo -e
+							echo -e "TUN 虚拟网络接口创建失败,${BOLD}${ORANGE}仅代理 Chrome 和 Edge 流量.${RESET}"
+							echo -e
 						fi
-						sleep 1
-					done
-				}
-				echo "" >"$singbox_log_file"
-				(
-					for i in {1..10}; do
-						if grep -q "sing-box started" "$singbox_log_file"; then
-							break
-						fi
-						sleep 1
-					done
-
-					if [[ $i -eq 10 ]]; then
-						clear
-						echo -e "${RED}启动失败${RESET}"
-						echo -e
-						exit 1
+						break
 					fi
+					sleep 1
+				done
+			) &
 
-					singbox_start_message
+			for i in {1..2}; do
+				"$pkg_dst_cmd" run -D "${singbox_workdir}" && break || sleep 1s
+			done
+
+			(
+				if reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" >/dev/null 2>&1; then
+					process_stop "chrome.exe"
 					sleep 3
-					set +e
-					if [ -n "${CHROME:-}" ]; then
-						process_stop "chrome.exe"
-						start chrome.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC" || start "https://www.google.cn/intl/zh-CN/chrome/?standalone=1"
-					fi
-					if [ -n "${EDGE:-}" ]; then
-						process_stop "msedge.exe"
-						start msedge.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC" || start "https://www.microsoft.com/zh-cn/edge/download"
-					fi
+					start chrome.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
+				else
+					start "https://www.google.cn/intl/zh-CN/chrome/?standalone=1"
+				fi
 
-					if [ -n "${FIREFOX:-}" ]; then
-						process_stop "firefox.exe"
-						start firefox.exe -CreateProfile proxy || start "https://www.mozilla.org/zh-CN/firefox/all/#product-desktop-release"
-						sleep 3
-						cd "$APPDATA/Mozilla/Firefox/Profiles/"*.proxy
-						echo "user_pref(\"network.proxy.autoconfig_url\", $PAC);" >>user.js
-						echo 'user_pref("network.proxy.http", "127.0.0.1");' >user.js
-						echo "user_pref(\"network.proxy.http_port\", $MIXED_PORT);" >>user.js
-						echo 'user_pref("network.proxy.socks", "127.0.0.1");' >>user.js
-						echo "user_pref(\"network.proxy.socks_port\", $MIXED_PORT);" >>user.js
-						echo 'user_pref("network.proxy.ssl", "127.0.0.1");' >>user.js
-						echo "user_pref(\"network.proxy.ssl_port\", $MIXED_PORT);" >>user.js
-						echo 'user_pref("network.proxy.type", 2);' >>user.js
-						start firefox.exe -url "$YACD" "https://youtube.com" "https://ip.sb" -foreground -new-instance -no-remote -P proxy
-					fi
-					set -e
-				) &
+				if reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe" >/dev/null 2>&1; then
+					process_stop "msedge.exe"
+					sleep 3
+					start msedge.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
+				else
+					start "https://www.microsoft.com/zh-cn/edge/download"
+				fi
+			) &
 
-				# for i in {1..2}; do
-				# 	"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json" && break || sleep 1s
-				# done
+			for i in {1..2}; do
 				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json"
-			fi
+			done
+
 			;;
 		esac
 
@@ -846,19 +835,11 @@ linux)
 	sudo_cmd pkill sing-box >/dev/null 2>&1
 	;;
 windows)
-	check_windows
 	echo -e
 	echo -e "以下软件可能会干扰 sing-box 的正常运行，请退出："
 	echo -e
 	echo -e "Clash V2ray Shadowsocks 360安全卫士 腾讯电脑管家 联想电脑管家 火绒安全软件"
-	taskkill //IM "sing-box.exe" //F >nul 2>&1
-	if [ -f "${HOME}/.local/share/sing-box/cache.db" ]; then
-		for i in {1..10}; do
-			mv "${HOME}/.local/share/sing-box/cache.db" "${HOME}/.local/share/sing-box/cache.db.bak" && break || sleep 1s
-		done
-		mv "${HOME}/.local/share/sing-box/cache.db.bak" "${HOME}/.local/share/sing-box/cache.db"
-		sleep 3
-	fi
+	process_stop "sing-box.exe"
 	;;
 esac
 
@@ -866,8 +847,8 @@ WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
 PKG_VERSION="${VERSION:-1.2.2}"
 PKG_TAG="v${PKG_VERSION}"
-PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
-# PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
+# PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
+PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
 if [ "$OS" = "windows" ]; then
 	PKG_EXT=zip
 else
@@ -884,20 +865,20 @@ singbox_log_file="${singbox_workdir}/box.log"
 config_json_url="${URL:-}"
 config_json="${singbox_workdir}/config.json"
 
-yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
-# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
+# yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
+yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
 yacd_dir="${singbox_workdir}/yacd"
 
-pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
-# pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
+# pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
+pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
 pac_txt="${singbox_workdir}/yacd/pac.txt"
 
-geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
-# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
+# geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
+geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
 geoip_db="${singbox_workdir}/geoip.db"
 
-geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
-# geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
+# geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
+geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
 
 ##
