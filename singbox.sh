@@ -847,8 +847,8 @@ WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
 PKG_VERSION="${VERSION:-1.2.2}"
 PKG_TAG="v${PKG_VERSION}"
-# PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
-PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
+PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
+# PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
 if [ "$OS" = "windows" ]; then
 	PKG_EXT=zip
 else
@@ -865,20 +865,20 @@ singbox_log_file="${singbox_workdir}/box.log"
 config_json_url="${URL:-}"
 config_json="${singbox_workdir}/config.json"
 
-# yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
-yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
+yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
+# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
 yacd_dir="${singbox_workdir}/yacd"
 
-# pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
-pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
+pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
+# pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
 pac_txt="${singbox_workdir}/yacd/pac.txt"
 
-# geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
-geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
+geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
+# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
 geoip_db="${singbox_workdir}/geoip.db"
 
-# geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
-geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
+geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
+# geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
 
 ##
