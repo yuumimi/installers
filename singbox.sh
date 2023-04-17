@@ -608,7 +608,7 @@ bootstrap_pkg() {
 							echo -e
 							echo -e "TUN 虚拟网络接口创建失败,${BOLD}${ORANGE}仅代理 Chrome 和 Edge 流量.${RESET}"
 							echo -e
-							echo -e "如果要代理其它软件，请将对应软件的代理设置为: SOCKS5://127.0.0.1:2080"
+							echo -e "如果要代理其它软件,请将对应软件的代理设置为 SOCKS5://127.0.0.1:2080"
 							echo -e
 							echo -e "如果要代理本机全部流量,请重新安装操作系统."
 							echo -e
