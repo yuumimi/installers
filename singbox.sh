@@ -109,19 +109,6 @@ ask_password() {
 	fi
 }
 
-check_windows() {
-	if [ -z "${CHROME:-}" ] && [ -z "${EDGE:-}" ] && [ -z "${FIREFOX:-}" ]; then
-		# 检查系统文件是否存在损坏
-		if [[ $(SFC 2>&1 | tr -d '\0') =~ SCANNOW ]]; then
-			:
-		else
-			# 如果系统文件损坏，打印消息提示用户必须以管理员身份运行 Git Bash，然后退出脚本
-			printf "\n${RED}必须以管理员身份运行 Git Bash${RESET}\n\n${BOLD}${ORANGE}右键点击桌面上的 Git Bash 图标 > 属性 > 兼容性 > 勾选以管理员身份运行此程序 > 确定${RESET}\n"
-			exit 1
-		fi
-	fi
-}
-
 process_stop() {
 	PROCESS_NAME=$1
 	while true; do
@@ -444,29 +431,20 @@ bootstrap_pkg() {
 	}
 
 	singbox_download_deps() {
-		set +e
-		find "${singbox_workdir}/yacd" -name "CNAME" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		find "${singbox_workdir}" -name "geoip.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		find "${singbox_workdir}" -name "geosite.db" -ctime +7 -ls -exec rm -f {} \; >/dev/null 2>&1
-		set -e
-
-		month=$(date +%m)
-		day=$(date +%d)
-
-		if [ ! -f "${yacd_dir}/CNAME" ]; then
+		if [ ! -e "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" ] || [ $(find "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" -mtime +7 -print) ]; then
 			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
 			(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
 		fi
 
-		if [ ! -f "${pac_txt}" ]; then
+		if [ ! -e "${pac_txt}" ] || [ $(find "${pac_txt}" -mtime +7 -print) ]; then
 			download "$pac_url" "$pac_txt" "PAC" && echo ""
 		fi
 
-		if [ ! -f "${geoip_db}" ]; then
+		if [ ! -e "${geoip_db}" ] || [ $(find "${geoip_db}" -mtime +7 -print) ]; then
 			download "$geoip_url" "$geoip_db" "geoip" && echo ""
 		fi
 
-		if [ ! -f "${geosite_db}" ]; then
+		if [ ! -e "${geosite_db}" ] || [ $(find "${geosite_db}" -mtime +7 -print) ]; then
 			download "$geosite_url" "$geosite_db" "geosite" && echo ""
 		fi
 	}
@@ -654,8 +632,6 @@ bootstrap_pkg() {
 					process_stop "msedge.exe"
 					sleep 3
 					start msedge.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
-				else
-					start "https://www.microsoft.com/zh-cn/edge/download"
 				fi
 			) &
 
@@ -759,7 +735,9 @@ bootstrap_pkg() {
 	fi
 
 	webi_path_add "$HOME/.local/bin"
+
 	init_singbox
+
 	# cleanup the temp directory
 	rm -rf "$TMP_DIR"
 
@@ -809,15 +787,6 @@ for arg in $args; do
 		;;
 	nic=*)
 		NIC=${arg#*=}
-		;;
-	chrome)
-		CHROME=true
-		;;
-	edge)
-		EDGE=true
-		;;
-	firefox)
-		FIREFOX=true
 		;;
 	esac
 done
