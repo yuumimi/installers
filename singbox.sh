@@ -593,7 +593,7 @@ bootstrap_pkg() {
 			echo "" >"$singbox_log_file"
 
 			(
-				for i in {1..16}; do
+				for i in {1..60}; do
 					if grep -q "sing-box started" "$singbox_log_file"; then
 						if grep -q "inbound/tun.*started" "$singbox_log_file"; then
 							singbox_start_message
