@@ -846,11 +846,11 @@ pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/r
 # pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
 pac_txt="${singbox_workdir}/yacd/pac.txt"
 
-geoip_url="https://ghproxy.com/https://github.com/yuumimi/sing-geoip/releases/latest/download/geoip.db"
-# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
+geoip_url="https://ghproxy.com/https://github.com/caocaocc/sing-geoip/releases/latest/download/geoip-asn-cn-private.db"
+# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip-asn-cn-private.db"
 geoip_db="${singbox_workdir}/geoip.db"
 
-geosite_url="https://ghproxy.com/https://github.com/yuumimi/sing-geosite/releases/latest/download/geosite.db"
+geosite_url="https://ghproxy.com/https://github.com/caocaocc/sing-geosite/releases/latest/download/geosite.db"
 # geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
 
