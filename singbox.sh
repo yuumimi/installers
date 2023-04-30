@@ -431,13 +431,11 @@ bootstrap_pkg() {
 	}
 
 	singbox_download_deps() {
-		if [ ! -e "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" ] || [ $(find "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" -mtime +7 -print) ]; then
-			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
-			(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
-		fi
+		pac_txt="${singbox_workdir}/yacd/pac.txt"
 
 		if [ ! -e "${pac_txt}" ] || [ $(find "${pac_txt}" -mtime +7 -print) ]; then
-			download "$pac_url" "$pac_txt" "PAC" && echo ""
+			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
+			(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
 		fi
 
 		if [ ! -e "${geoip_db}" ] || [ $(find "${geoip_db}" -mtime +7 -print) ]; then
@@ -513,8 +511,6 @@ bootstrap_pkg() {
 		fi
 
 		PAC="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/pac.txt"
-
-		awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_json") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_json") 'NR<start || NR>end' "$config_json" >"${singbox_workdir}/config_mixed.json"
 
 		open_url=$(command -v start || command -v open || command -v xdg-open)
 
@@ -638,6 +634,8 @@ bootstrap_pkg() {
 					start msedge.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
 				fi
 			) &
+
+			awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_json") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_json") 'NR<start || NR>end' "$config_json" >"${singbox_workdir}/config_mixed.json"
 
 			for i in {1..2}; do
 				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json" && break || sleep 1s
@@ -820,8 +818,8 @@ WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
 PKG_VERSION="${VERSION:-1.2.6}"
 PKG_TAG="v${PKG_VERSION}"
-PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
-# PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
+# PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
+PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
 if [ "$OS" = "windows" ]; then
 	PKG_EXT=zip
 else
@@ -838,19 +836,15 @@ singbox_log_file="${singbox_workdir}/box.log"
 config_json_url="${URL:-}"
 config_json="${singbox_workdir}/config.json"
 
-yacd_url="https://ghproxy.com/https://github.com/yuumimi/yacd/releases/latest/download/yacd.tar.gz"
+yacd_url="https://fastly.jsdelivr.net/gh/caocaocc/archive@sing-dep/yacd.tar.gz"
 # yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
 yacd_dir="${singbox_workdir}/yacd"
 
-pac_url="https://ghproxy.com/https://raw.githubusercontent.com/yuumimi/archive/release/pac.txt"
-# pac_url="https://repo.o2cdn.icu/cached-apps/sing-box/pac.txt"
-pac_txt="${singbox_workdir}/yacd/pac.txt"
-
-geoip_url="https://ghproxy.com/https://github.com/caocaocc/sing-geoip/releases/latest/download/geoip-asn-cn-private.db"
-# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip-asn-cn-private.db"
+geoip_url="https://fastly.jsdelivr.net/gh/caocaocc/archive@sing-dep/geoip.db"
+# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
 geoip_db="${singbox_workdir}/geoip.db"
 
-geosite_url="https://ghproxy.com/https://github.com/caocaocc/sing-geosite/releases/latest/download/geosite.db"
+geosite_url="https://fastly.jsdelivr.net/gh/caocaocc/archive@sing-dep/geosite.db"
 # geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
 
