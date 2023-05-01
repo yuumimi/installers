@@ -431,12 +431,11 @@ bootstrap_pkg() {
   }
 
   singbox_download_deps() {
-    pac_txt="${singbox_workdir}/yacd/pac.txt"
-
-    if [ ! -e "${pac_txt}" ] || [ ! -e "${singbox_workdir}/version.txt" ] || [ $(find "${pac_txt}" -mtime +7 -print) ]; then
-      echo "0.3.8" >"${singbox_workdir}/version.txt"
+    if [ ! -e "${pac_txt}" ] || [ ! -e "${singbox_workdir}/yacd/version.txt" ] || [ $(find "${pac_txt}" -mtime +7 -print) ]; then
+      rm -rf "${singbox_workdir}/yacd"
       download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
       (cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
+      echo "0.3.8" >"${singbox_workdir}/yacd/version.txt"
     fi
 
     if [ ! -e "${geoip_db}" ] || [ $(find "${geoip_db}" -mtime +7 -print) ]; then
@@ -848,6 +847,8 @@ geoip_db="${singbox_workdir}/geoip.db"
 geosite_url="https://fastly.jsdelivr.net/gh/caocaocc/archive@sing-dep/geosite.db"
 # geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_db="${singbox_workdir}/geosite.db"
+
+pac_txt="${singbox_workdir}/yacd/pac.txt"
 
 ##
 ## Set up tmp, download, and install directories
