@@ -210,8 +210,7 @@ bootstrap_pkg() {
 				fi
 				echo ""
 				echo ""
-				singbox_download_config
-				singbox_start
+				init_singbox
 				exit 0
 			fi
 			if [ -x "$pkg_src_cmd" ]; then
@@ -222,8 +221,7 @@ bootstrap_pkg() {
 				echo "switched to $my_canonical_name:"
 				echo "    ${pkg_dst} => ${pkg_src}"
 				echo ""
-				singbox_download_config
-				singbox_start
+				init_singbox
 				exit 0
 			fi
 		fi
@@ -427,17 +425,25 @@ bootstrap_pkg() {
 			curl -kfSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
-		if ! [[ "$my_dl" =~ "config.json.tmp" ]]; then
+		if ! [[ "$my_dl" =~ "config.json.tmp" ]] && [[ "$my_dl" =~ ".tar.gz" ]]; then
 			echo "Saved as $my_dl"
 		fi
 	}
 
 	singbox_download_deps() {
-		rm -rf "${singbox_workdir}/yacd"
-		download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd"
-		(cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && cp -f -r "public/" "${singbox_workdir}/yacd/" && echo "Extracting to ${singbox_workdir}/yacd" && echo "")
-		download "$geoip_url" "$geoip_db" "geoip" && echo ""
-		download "$geosite_url" "$geosite_db" "geosite" && echo ""
+		datafile="${PKG_DOWNLOAD_PATH}/data.tmp"
+		if [ -e "${datafile}" ] && [ "$(date -r ${datafile} +'%Y%m%d')" = "$(date +'%Y%m%d')" ]; then
+			return 0
+		else
+			set +e
+			download "$geoip_url" "$geoip_file" "geoip" && echo ""
+			download "$geosite_url" "$geosite_file" "geosite" && echo ""
+			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd" && cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && rm -rf "$yacd_path" && cp -f -r "public/" "$yacd_path/" && echo "Extracting to $yacd_path" && echo ""
+			set -e
+			if [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -e "$pac_file" ]; then
+				touch ${datafile}
+			fi
+		fi
 	}
 
 	singbox_download_config() {
@@ -481,26 +487,26 @@ bootstrap_pkg() {
 	}
 
 	singbox_start() {
-		if [ ! -f "$config_json" ]; then
+		if [ ! -f "$config_file" ]; then
 			echo -e "${RED}配置文件不存在，请重新启动设备后再次尝试。${RESET}" >&2
 			exit 1
 		fi
 
-		if "$pkg_dst_cmd" check -c "$config_json" 2>&1; then
+		if "$pkg_dst_cmd" check -c "$config_file" 2>&1; then
 			:
 		else
 			echo -e "${RED}配置文件错误，请登陆您的账户并重新复制一键脚本。${RESET}" >&2
 			exit 1
 		fi
 
-		EXTERNAL_CONTROLLER_PORT=$(awk -F'"' '/external_controller/ {gsub(/[^0-9]/,"",$4); printf("%d\n", $4)}' "$config_json")
+		EXTERNAL_CONTROLLER_PORT=$(awk -F'"' '/external_controller/ {gsub(/[^0-9]/,"",$4); printf("%d\n", $4)}' "$config_file")
 		YACD="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/#/proxies"
 
-		MIXED_PORT=$(awk '/"type": "mixed"/ {mixed=NR} mixed && /"listen_port"/ {gsub(/[^0-9]/,"",$2); print $2; exit}' "$config_json")
-		PAC_PORT=$(awk -F':' 'NR==1 {gsub(/;|"|\047/,"",$2);print $2}' "$pac_txt")
+		MIXED_PORT=$(awk '/"type": "mixed"/ {mixed=NR} mixed && /"listen_port"/ {gsub(/[^0-9]/,"",$2); print $2; exit}' "$config_file")
+		PAC_PORT=$(awk -F':' 'NR==1 {gsub(/;|"|\047/,"",$2);print $2}' "$pac_file")
 
 		if [ "$PAC_PORT" != "$MIXED_PORT" ]; then
-			awk -v mixed_port="$MIXED_PORT" '{gsub(/127\.0\.0\.1:[0-9]+/,"127.0.0.1:" mixed_port)}1' "$pac_txt" >temp && mv temp "$pac_txt"
+			awk -v mixed_port="$MIXED_PORT" '{gsub(/127\.0\.0\.1:[0-9]+/,"127.0.0.1:" mixed_port)}1' "$pac_file" >temp && mv temp "$pac_file"
 		fi
 
 		PAC="http://127.0.0.1:$EXTERNAL_CONTROLLER_PORT/ui/pac.txt"
@@ -632,13 +638,14 @@ bootstrap_pkg() {
 				fi
 			) &
 
-			awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_json") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_json") 'NR<start || NR>end' "$config_json" >"${singbox_workdir}/config_mixed.json"
+			awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_file") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_file") 'NR<start || NR>end' "$config_file" >"${singbox_workdir}/config_mixed.json"
 
 			for i in {1..2}; do
 				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json" && break || sleep 1s
 			done
 
 			clear
+			process_stop "sing-box.exe"
 			rm -rf $HOME/.local/*/sing-box*
 			echo ""
 			echo -e "${RED}启动失败${RESET}"
@@ -743,9 +750,7 @@ bootstrap_pkg() {
 
 	webi_path_add "$HOME/.local/bin"
 
-	singbox_download_deps
-	singbox_download_config
-	singbox_start
+	init_singbox
 
 	# cleanup the temp directory
 	rm -rf "$TMP_DIR"
@@ -840,22 +845,21 @@ PKG_DOWNLOAD_PATH="${HOME}/.local/tmp/${PKG_NAME}"
 singbox_workdir="${HOME}/.local/share/sing-box"
 singbox_log_file="${singbox_workdir}/box.log"
 
-config_json_url="${URL:-}"
-config_json="${singbox_workdir}/config.json"
-
-yacd_url="https://ghproxy.com/https://github.com/caocaocc/yacd/releases/latest/download/yacd.tar.gz"
-# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
-yacd_dir="${singbox_workdir}/yacd"
+config_url="${URL:-}"
+config_file="${singbox_workdir}/config.json"
 
 geoip_url="https://ghproxy.com/https://github.com/caocaocc/sing-geoip/releases/latest/download/geoip-asn-cn-private.db"
-# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip.db"
-geoip_db="${singbox_workdir}/geoip.db"
+# geoip_url="https://repo.o2cdn.icu/cached-apps/sing-box/geoip-asn-cn-private.db"
+geoip_file="${singbox_workdir}/geoip.db"
 
 geosite_url="https://ghproxy.com/https://github.com/caocaocc/sing-geosite/releases/latest/download/geosite.db"
 # geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
-geosite_db="${singbox_workdir}/geosite.db"
+geosite_file="${singbox_workdir}/geosite.db"
 
-pac_txt="${singbox_workdir}/yacd/pac.txt"
+yacd_url="https://ghproxy.com/https://github.com/caocaocc/yacd/releases/latest/download/yacd.tar.gz"
+# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
+yacd_path="${singbox_workdir}/yacd"
+pac_file="${yacd_path}/pac.txt"
 
 ##
 ## Set up tmp, download, and install directories
