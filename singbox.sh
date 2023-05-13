@@ -428,8 +428,14 @@ bootstrap_pkg() {
 	}
 
 	singbox_download_deps() {
-		datafile="${PKG_DOWNLOAD_PATH}/data.tmp"
-		if [ -e "$datafile" ] && [ "$(date -r "$datafile" +'%Y%m%d')" = "$(date +'%Y%m%d')" ] && [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -d "$yacd_path" ]; then
+		if [ ! -f "${PKG_DOWNLOAD_PATH}/date.txt" ]; then
+			echo "0" >"${PKG_DOWNLOAD_PATH}/date.txt"
+		fi
+
+		current_date=$(date +%Y%m%d)
+		download_date=$(cat "${PKG_DOWNLOAD_PATH}/date.txt")
+
+		if [ "$current_date" = "$download_date" ] && [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -d "$yacd_path" ]; then
 			return 0
 		else
 			set +e
@@ -438,7 +444,7 @@ bootstrap_pkg() {
 			download "$yacd_url" "$yacd_file" "yacd" && cd "$singbox_workdir" && tar -xzf "$yacd_file" && rm -rf yacd && mv yacd-gh-pages yacd && echo "Saved as $yacd_path" && echo ""
 			set -e
 			if [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -d "$yacd_path" ]; then
-				touch "$datafile"
+				echo "$current_date" >"${PKG_DOWNLOAD_PATH}/date.txt"
 			else
 				echo -e "${RED}下载失败,请重试.如果重试 3 次均失败,请重启设备.${RESET}"
 				echo ""
