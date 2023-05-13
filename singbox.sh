@@ -425,23 +425,24 @@ bootstrap_pkg() {
 			curl -kfSL $my_show_progress -H "User-Agent: curl $UA" "$my_url" -o "$my_dl.part"
 		fi
 		mv "$my_dl.part" "$my_dl"
-		if ! [[ "$my_dl" =~ "config.json.tmp" ]] && [[ "$my_dl" =~ ".tar.gz" ]]; then
-			echo "Saved as $my_dl"
-		fi
 	}
 
 	singbox_download_deps() {
 		datafile="${PKG_DOWNLOAD_PATH}/data.tmp"
-		if [ -e "${datafile}" ] && [ "$(date -r ${datafile} +'%Y%m%d')" = "$(date +'%Y%m%d')" ]; then
+		if [ -e "$datafile" ] && [ "$(date -r "$datafile" +'%Y%m%d')" = "$(date +'%Y%m%d')" ] && [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -d "$yacd_path" ]; then
 			return 0
 		else
 			set +e
-			download "$geoip_url" "$geoip_file" "geoip" && echo ""
-			download "$geosite_url" "$geosite_file" "geosite" && echo ""
-			download "$yacd_url" "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" "yacd" && cd "$TMP_DIR" && tar xf "${PKG_DOWNLOAD_PATH}/yacd.tar.gz" && rm -rf "$yacd_path" && cp -f -r "public/" "$yacd_path/" && echo "Extracting to $yacd_path" && echo ""
+			download "$geoip_url" "$geoip_file" "geoip" && echo "Saved as $geoip_file" && echo ""
+			download "$geosite_url" "$geosite_file" "geosite" && echo "Saved as $geosite_file" && echo ""
+			download "$yacd_url" "$yacd_file" "yacd" && cd "$singbox_workdir" && tar -xzf "$yacd_file" && rm -rf yacd && mv yacd-gh-pages yacd && echo "Saved as $yacd_path" && echo ""
 			set -e
-			if [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -e "$pac_file" ]; then
-				touch ${datafile}
+			if [ -e "$geoip_file" ] && [ -e "$geosite_file" ] && [ -d "$yacd_path" ]; then
+				touch "$datafile"
+			else
+				echo -e "${RED}下载失败,请重试.如果重试 3 次均失败,请重启设备.${RESET}"
+				echo ""
+				exit 1
 			fi
 		fi
 	}
@@ -515,6 +516,7 @@ bootstrap_pkg() {
 
 		echo ""
 		echo -e "开始启动 sing-box ,请稍等..."
+		sleep 3
 
 		case "$OS" in
 		linux)
@@ -856,8 +858,9 @@ geosite_url="https://ghproxy.com/https://github.com/caocaocc/sing-geosite/releas
 # geosite_url="https://repo.o2cdn.icu/cached-apps/sing-box/geosite.db"
 geosite_file="${singbox_workdir}/geosite.db"
 
-yacd_url="https://ghproxy.com/https://github.com/caocaocc/yacd/releases/latest/download/yacd.tar.gz"
-# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/yacd.tar.gz"
+yacd_url="https://ghproxy.com/https://github.com/caocaocc/yacd/archive/gh-pages.tar.gz"
+# yacd_url="https://repo.o2cdn.icu/cached-apps/sing-box/gh-pages.tar.gz"
+yacd_file="${PKG_DOWNLOAD_PATH}/yacd.tar.gz"
 yacd_path="${singbox_workdir}/yacd"
 pac_file="${yacd_path}/pac.txt"
 
