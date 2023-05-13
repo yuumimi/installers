@@ -535,7 +535,7 @@ bootstrap_pkg() {
 					if grep -q "sing-box started" "$singbox_log_file"; then
 						singbox_start_message
 						sleep 3
-						$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+						$open_url "https://api.myip.la/cn?txt" && $open_url "https://youtube.com" && $open_url "$YACD"
 						break
 					fi
 					sleep 1
@@ -571,7 +571,7 @@ bootstrap_pkg() {
 					if grep -q "sing-box started" "$singbox_log_file"; then
 						singbox_start_message
 						sleep 3
-						$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+						$open_url "https://api.myip.la/cn?txt" && $open_url "https://youtube.com" && $open_url "$YACD"
 						break
 					fi
 					sleep 1
@@ -603,7 +603,7 @@ bootstrap_pkg() {
 						if grep -q "inbound/tun.*started" "$singbox_log_file"; then
 							singbox_start_message
 							sleep 3
-							$open_url "https://ip.sb" && $open_url "https://youtube.com" && $open_url "$YACD"
+							$open_url "https://api.myip.la/cn?txt" && $open_url "https://youtube.com" && $open_url "$YACD"
 						else
 							clear
 							echo ""
@@ -634,7 +634,7 @@ bootstrap_pkg() {
 				if reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" >/dev/null 2>&1; then
 					process_stop "chrome.exe"
 					sleep 3
-					start chrome.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
+					start chrome.exe "$YACD" "https://youtube.com" "https://api.myip.la/cn?txt" --dns-prefetch-disable --proxy-pac-url="$PAC"
 				else
 					start "https://www.google.cn/intl/zh-CN/chrome/?standalone=1"
 				fi
@@ -642,7 +642,7 @@ bootstrap_pkg() {
 				if reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe" >/dev/null 2>&1; then
 					process_stop "msedge.exe"
 					sleep 3
-					start msedge.exe "$YACD" "https://youtube.com" "https://ip.sb" --dns-prefetch-disable --proxy-pac-url="$PAC"
+					start msedge.exe "$YACD" "https://youtube.com" "https://api.myip.la/cn?txt" --dns-prefetch-disable --proxy-pac-url="$PAC"
 				fi
 			) &
 
