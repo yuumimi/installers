@@ -475,11 +475,16 @@ bootstrap_pkg() {
 	}
 
 	singbox_start_message() {
+		if [ "$OS" = "darwin" ]; then
+			EXIT_KEY="Control + C"
+		else
+			EXIT_KEY="CTRL + C"
+		fi
 		clear
 		echo ""
 		echo -e "${GREEN}启动成功,sing-box 正在运行中...${RESET}"
 		echo ""
-		echo -e "请勿强制关闭本窗口,退出 sing-box 请按 ${BOLD}${ORANGE}CTRL + C${RESET} "
+		echo -e "请勿强制关闭本窗口,退出 sing-box 请按 ${BOLD}${ORANGE}$EXIT_KEY${RESET} "
 		echo ""
 	}
 
