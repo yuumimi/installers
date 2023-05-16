@@ -618,11 +618,11 @@ bootstrap_pkg() {
 							echo ""
 							echo ""
 							echo ""
-							echo -e "TUN 虚拟网络接口创建失败,${BOLD}${ORANGE}仅代理 Chrome 和 Edge 流量.${RESET}"
+							echo -e "${BOLD}${ORANGE}当前环境仅代理 Chrome/Edge 浏览器.${RESET}"
 							echo ""
 							echo -e "如果要代理其它软件,请将对应软件的代理设置为 SOCKS5://127.0.0.1:2080"
 							echo ""
-							echo -e "如果要代理本机全部流量,请重新安装操作系统."
+							echo -e "如果要代理本机全部流量,必须以管理员身份运行 Git Bash 并退出所有杀毒软件.如果仍然无效,必须重新安装操作系统."
 							echo ""
 						fi
 						break
@@ -844,7 +844,6 @@ PKG_FILE_NAME="${PKG_NAME}-${PKG_VERSION}-${OS}-${ARCH}.${PKG_EXT}"
 PKG_DOWNLOAD_URL="${PKG_RELEASES}/${PKG_TAG}/${PKG_FILE_NAME}"
 PKG_DOWNLOAD_PATH="${HOME}/.local/tmp/${PKG_NAME}"
 
-# sing-box
 singbox_workdir="${HOME}/.local/share/sing-box"
 singbox_log_file="${singbox_workdir}/box.log"
 
