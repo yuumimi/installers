@@ -651,21 +651,11 @@ bootstrap_pkg() {
 				fi
 			) &
 
-			awk -v start=$(awk '/\{/ {count++; if (count==12) {print NR; exit}}' "$config_file") -v end=$(awk '/\}/ {count++; if (count==11) {print NR; exit}}' "$config_file") 'NR<start || NR>end' "$config_file" >"${singbox_workdir}/config_mixed.json"
-
-			for i in {1..2}; do
-				"$pkg_dst_cmd" run -D "${singbox_workdir}" -c "${singbox_workdir}/config_mixed.json" && break || sleep 1s
-			done
-
-			clear
-			process_stop "sing-box.exe"
-			rm -rf $HOME/.local/*/sing-box*
-			echo ""
-			echo -e "${RED}启动失败${RESET}"
-			echo ""
-			echo -e "${BOLD}${ORANGE}请尝试重新启动设备${RESET}"
-			echo ""
-			exit 1
+			auto_route_line_numbers=$(awk '/auto_route/ { print NR }' "$config_file")
+			tun_line_numbers_start=$(awk -v end_line="$auto_route_line_numbers" 'NR <= end_line && /{/ { line = NR } END { print line }' "$config_file")
+			tun_line_numbers_stop=$(awk -v start_line="$auto_route_line_numbers" 'NR >= start_line && /}/ { print NR; exit }' "$config_file")
+			awk -v start="$tun_line_numbers_start" -v end="$tun_line_numbers_stop" 'NR < start || NR > end' "$config_file" >"$config_file.tmp" && mv "$config_file.tmp" "$config_file"
+			"$pkg_dst_cmd" run -D "${singbox_workdir}"
 			;;
 		esac
 
