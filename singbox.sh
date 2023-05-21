@@ -13,7 +13,7 @@ init_arch() {
 		ARCH="armv7"
 		;;
 	i386 | i686 | i86pc | x86)
-		ARCH="386"
+		ARCH="amd64"
 		;;
 	s390x)
 		ARCH="s390x"
@@ -831,7 +831,7 @@ esac
 
 WEBI_PKG="sing-box"
 PKG_NAME="sing-box"
-PKG_VERSION="${VERSION:-1.2.6}"
+PKG_VERSION="${VERSION:-1.2.7}"
 PKG_TAG="v${PKG_VERSION}"
 PKG_RELEASES="https://ghproxy.com/https://github.com/SagerNet/sing-box/releases/download"
 # PKG_RELEASES="https://repo.o2cdn.icu/cached-apps/sing-box"
